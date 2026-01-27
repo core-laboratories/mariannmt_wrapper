@@ -1,5 +1,4 @@
 Submodule third_party/bergamot-translator contains modified content
-Submodule 3rd_party/marian-dev contains modified content
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/cmake/TargetArch.cmake b/third_party/bergamot-translator/3rd_party/marian-dev/cmake/TargetArch.cmake
 index f653e3e2..335043c6 100644
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/cmake/TargetArch.cmake
@@ -24,7 +23,45 @@ index f653e3e2..335043c6 100644
          if(osx_arch_ppc64)
              list(APPEND ARCH ppc64)
          endif()
-Submodule src/3rd_party/sentencepiece contains modified content
+
+diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/CMakeLists.txt b/third_party/bergamot-translator/3rd_party/marian-dev/src/CMakeLists.txt
+index f041ac71..c3d3db92 100644
+--- a/third_party/bergamot-translator/3rd_party/marian-dev/src/CMakeLists.txt
++++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/CMakeLists.txt
+@@ -156,13 +156,25 @@ if(NOT IS_DIRECTORY ${MARIAN_GIT_DIR}) # i.e., it's a submodule
+   endif()
+ endif(NOT IS_DIRECTORY ${MARIAN_GIT_DIR})
+ 
+-add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h
+-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+-  COMMAND git log -1 --pretty=format:\#define\ GIT_REVISION\ \"\%h\ \%ai\" > ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h
+-  DEPENDS ${MARIAN_GIT_DIR}/logs/HEAD
+-  VERBATIM
+-)
+-add_custom_target(marian_version DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h)
++set(GIT_REVISION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h)
++
++# In some build setups (e.g. Flutter .plugin_symlinks), Marian's .git metadata is not available.
++# Avoid depending on a missing ${MARIAN_GIT_DIR}/logs/HEAD which breaks Ninja builds.
++if(EXISTS ${MARIAN_GIT_DIR}/logs/HEAD)
++  add_custom_command(OUTPUT ${GIT_REVISION_FILE}
++    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
++    COMMAND git log -1 --pretty=format:\#define\ GIT_REVISION\ \"\%h\ \%ai\" > ${GIT_REVISION_FILE}
++    DEPENDS ${MARIAN_GIT_DIR}/logs/HEAD
++    VERBATIM
++  )
++  add_custom_target(marian_version DEPENDS ${GIT_REVISION_FILE})
++else()
++  if(NOT EXISTS ${GIT_REVISION_FILE})
++    file(WRITE ${GIT_REVISION_FILE} "#define GIT_REVISION \"unknown\"\n")
++  endif()
++  message(STATUS "Marian git metadata not found (${MARIAN_GIT_DIR}/logs/HEAD); using ${GIT_REVISION_FILE}")
++  add_custom_target(marian_version)
++endif()
+ add_dependencies(marian marian_version) # marian must depend on it so that it gets created first
+ # make sure all local dependencies are installed first before this is built
+ add_dependencies(marian 3rd_party_installs)
+
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc
 index 31659cb..da13b8e 100644
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc
@@ -64,6 +101,7 @@ index b079ea6a..953dc65e 100644
  #  define OS_CODE  7
  #  ifndef Z_SOLO
  #    if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
+
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zstr/strict_fstream.hpp b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zstr/strict_fstream.hpp
 index 7b117393..948e91ea 100644
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zstr/strict_fstream.hpp
@@ -77,6 +115,7 @@ index 7b117393..948e91ea 100644
  // XSI-compliant strerror_r()
      if (strerror_r(errno, &buff[0], buff.size()) != 0)
      {
+
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/microsoft/quicksand.h b/third_party/bergamot-translator/3rd_party/marian-dev/src/microsoft/quicksand.h
 index 87de1948..32e23a3e 100755
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/src/microsoft/quicksand.h
