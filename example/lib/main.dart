@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:bergamot_translator/bergamot_translator.dart' as bergamot;
 import 'package:flutter/material.dart';
@@ -30,6 +31,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   bool _exitCleanupStarted = false;
 
   @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    await bergamot.BergamotTranslator.cleanupAsync(true);
+    return AppExitResponse.exit;
+  }
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -46,7 +53,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _cleanupOnExit();
     super.dispose();
   }
 
