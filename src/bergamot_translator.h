@@ -84,7 +84,7 @@ FFI_PLUGIN_EXPORT int bergamot_detect_language(
 );
 
 // 清理资源（释放所有模型和服务）
-FFI_PLUGIN_EXPORT void bergamot_cleanup(void);
+FFI_PLUGIN_EXPORT void bergamot_cleanup(int reset_service);
 
 // 释放字符串数组内存
 // array: 字符串数组指针

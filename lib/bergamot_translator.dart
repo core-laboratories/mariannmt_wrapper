@@ -45,10 +45,10 @@ class DetectionResult {
   }
 
   Map<String, dynamic> toJson() => {
-    'language': language,
-    'isReliable': isReliable,
-    'confidence': confidence,
-  };
+        'language': language,
+        'isReliable': isReliable,
+        'confidence': confidence,
+      };
 
   @override
   String toString() =>
@@ -121,10 +121,10 @@ class _BergamotBackground {
       );
 
       try {
-        _sendPort = await handshake.future
-            .timeout(const Duration(seconds: 5));
+        _sendPort = await handshake.future.timeout(const Duration(seconds: 5));
       } on TimeoutException {
-        throw BergamotException('Failed to start bergamot worker isolate (timeout)');
+        throw BergamotException(
+            'Failed to start bergamot worker isolate (timeout)');
       }
     }();
 
@@ -158,9 +158,11 @@ class _BergamotBackground {
       _call<void>('loadModel', <String, Object?>{'cfg': cfg, 'key': key});
 
   Future<List<String>> translateMultiple(List<String> inputs, String key) =>
-      _call<List<String>>('translateMultiple', <String, Object?>{'inputs': inputs, 'key': key});
+      _call<List<String>>(
+          'translateMultiple', <String, Object?>{'inputs': inputs, 'key': key});
 
-  Future<List<String>> pivotMultiple(List<String> inputs, String firstKey, String secondKey) =>
+  Future<List<String>> pivotMultiple(
+          List<String> inputs, String firstKey, String secondKey) =>
       _call<List<String>>('pivotMultiple', <String, Object?>{
         'inputs': inputs,
         'firstKey': firstKey,
@@ -168,9 +170,11 @@ class _BergamotBackground {
       });
 
   Future<Map<String, Object?>> detectLanguage(String text, String? hint) =>
-      _call<Map<String, Object?>>('detectLanguage', <String, Object?>{'text': text, 'hint': hint});
+      _call<Map<String, Object?>>(
+          'detectLanguage', <String, Object?>{'text': text, 'hint': hint});
 
-  Future<void> cleanup() => _call<void>('cleanup', const {});
+  Future<void> cleanup(bool resetService) =>
+      _call<void>('cleanup', <String, Object?>{'resetService': resetService});
 
   void shutdown() {
     // 让所有未完成的请求尽快失败，避免退出时 await 永久悬挂。
@@ -211,8 +215,10 @@ void _bergamotWorkerMain(_IsolateInit init) {
     final cmd = raw['cmd'];
     if (id is! int || cmd is! String) return;
 
-    Map<String, Object?> ok(Object? result) => <String, Object?>{'id': id, 'ok': true, 'result': result};
-    Map<String, Object?> err(Object error) => <String, Object?>{'id': id, 'ok': false, 'error': error.toString()};
+    Map<String, Object?> ok(Object? result) =>
+        <String, Object?>{'id': id, 'ok': true, 'result': result};
+    Map<String, Object?> err(Object error) =>
+        <String, Object?>{'id': id, 'ok': false, 'error': error.toString()};
 
     try {
       switch (cmd) {
@@ -221,7 +227,8 @@ void _bergamotWorkerMain(_IsolateInit init) {
           mainSendPort.send(ok(null));
           return;
         case 'loadModel':
-          BergamotTranslator.loadModel(raw['cfg'] as String, raw['key'] as String);
+          BergamotTranslator.loadModel(
+              raw['cfg'] as String, raw['key'] as String);
           mainSendPort.send(ok(null));
           return;
         case 'translateMultiple':
@@ -234,7 +241,8 @@ void _bergamotWorkerMain(_IsolateInit init) {
           final inputs = (raw['inputs'] as List).cast<String>();
           final firstKey = raw['firstKey'] as String;
           final secondKey = raw['secondKey'] as String;
-          final out = BergamotTranslator.pivotMultiple(inputs, firstKey, secondKey);
+          final out =
+              BergamotTranslator.pivotMultiple(inputs, firstKey, secondKey);
           mainSendPort.send(ok(out));
           return;
         case 'detectLanguage':
@@ -248,7 +256,7 @@ void _bergamotWorkerMain(_IsolateInit init) {
           }));
           return;
         case 'cleanup':
-          BergamotTranslator.cleanup();
+          BergamotTranslator.cleanup(raw['resetService'] as bool? ?? false);
           mainSendPort.send(ok(null));
           return;
         default:
@@ -370,9 +378,8 @@ class BergamotTranslator {
     _ensureInitialized();
 
     // 分配输入字符串数组
-    final inputPtrs = inputs
-        .map((s) => s.toNativeUtf8().cast<ffi.Char>())
-        .toList();
+    final inputPtrs =
+        inputs.map((s) => s.toNativeUtf8().cast<ffi.Char>()).toList();
     final inputsArray = malloc.allocate<ffi.Pointer<ffi.Char>>(
       ffi.sizeOf<ffi.Pointer<ffi.Char>>() * inputs.length,
     );
@@ -428,7 +435,8 @@ class BergamotTranslator {
   /// 批量翻译（后台 Isolate 版本）
   ///
   /// 推荐在 Flutter 场景使用：避免同步 FFI 阻塞 UI isolate。
-  static Future<List<String>> translateMultipleAsync(List<String> inputs, String key) {
+  static Future<List<String>> translateMultipleAsync(
+      List<String> inputs, String key) {
     return _BergamotBackground.instance.translateMultiple(inputs, key);
   }
 
@@ -469,9 +477,8 @@ class BergamotTranslator {
     _ensureInitialized();
 
     // 分配输入字符串数组
-    final inputPtrs = inputs
-        .map((s) => s.toNativeUtf8().cast<ffi.Char>())
-        .toList();
+    final inputPtrs =
+        inputs.map((s) => s.toNativeUtf8().cast<ffi.Char>()).toList();
     final inputsArray = malloc.allocate<ffi.Pointer<ffi.Char>>(
       ffi.sizeOf<ffi.Pointer<ffi.Char>>() * inputs.length,
     );
@@ -535,7 +542,8 @@ class BergamotTranslator {
     String firstKey,
     String secondKey,
   ) {
-    return _BergamotBackground.instance.pivotMultiple(inputs, firstKey, secondKey);
+    return _BergamotBackground.instance
+        .pivotMultiple(inputs, firstKey, secondKey);
   }
 
   /// 枢轴翻译单个文本（通过中间语言）
@@ -611,7 +619,8 @@ class BergamotTranslator {
   /// 检测语言（后台 Isolate 版本）
   ///
   /// 推荐在 Flutter 场景使用：避免同步 FFI 阻塞 UI isolate。
-  static Future<DetectionResult> detectLanguageAsync(String text, [String? hint]) async {
+  static Future<DetectionResult> detectLanguageAsync(String text,
+      [String? hint]) async {
     final map = await _BergamotBackground.instance.detectLanguage(text, hint);
     return DetectionResult.fromJson(map);
   }
@@ -619,17 +628,17 @@ class BergamotTranslator {
   /// 清理资源（释放所有模型和服务）
   ///
   /// 在应用程序退出前调用此方法以释放所有资源。
-  static void cleanup() {
+  static void cleanup(bool resetService) {
     if (_bindings != null) {
-      _bindings!.bergamot_cleanup();
+      _bindings!.bergamot_cleanup(resetService);
     }
   }
 
   /// 清理资源（后台 Isolate 版本）
   ///
   /// 清理 C++ 端资源并关闭后台 Isolate。
-  static Future<void> cleanupAsync() async {
-    await _BergamotBackground.instance.cleanup();
+  static Future<void> cleanupAsync(bool resetService) async {
+    await _BergamotBackground.instance.cleanup(resetService);
     _BergamotBackground.instance.shutdown();
   }
 

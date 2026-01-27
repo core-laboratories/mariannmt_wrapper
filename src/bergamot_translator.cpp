@@ -200,10 +200,12 @@ namespace {
         };
     }
     
-    void cleanup() {
+    void cleanup(bool reset_service) {
         std::lock_guard<std::mutex> lock(service_mutex);
         // Do not delete global_service (see note above); just drop references.
-        global_service = nullptr;
+        if (reset_service) {
+            global_service = nullptr;
+        }
 
         // Do NOT clear the model cache on macOS: destroying marian objects can
         // throw during shutdown and abort the process.
@@ -395,8 +397,8 @@ FFI_PLUGIN_EXPORT int bergamot_detect_language(
     }
 }
 
-FFI_PLUGIN_EXPORT void bergamot_cleanup(void) {
-    cleanup();
+FFI_PLUGIN_EXPORT void bergamot_cleanup(int reset_service) {
+    cleanup(reset_service != 0);
 }
 
 FFI_PLUGIN_EXPORT void bergamot_free_string_array(char** array, int count) {

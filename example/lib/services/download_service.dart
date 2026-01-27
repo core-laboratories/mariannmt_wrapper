@@ -50,8 +50,9 @@ class DownloadState {
 class DownloadService {
   // 基础URL配置
   static const String _defaultTranslationModelsBaseUrl =
-      'https://media.githubusercontent.com/media/mozilla/firefox-translations-models/6ffda9ba34d107a8b50ec766273b252ef92ebafc/models';
-  static const String _defaultDictionaryBaseUrl = 'https://translator.davidv.dev/dictionaries';
+      'https://media.githubusercontent.com/media/mozilla/firefox-translations-models/ce0a251b3cb4e8af97986fc557b99976369cf9ca/models';
+  static const String _defaultDictionaryBaseUrl =
+      'https://translator.davidv.dev/dictionaries';
   static const int _dictVersion = 1;
 
   static final DownloadService _instance = DownloadService._();
@@ -63,32 +64,46 @@ class DownloadService {
   // 下载状态跟踪
   final Map<Language, DownloadState> _modelDownloadStates = {};
   final Map<Language, DownloadState> _dictionaryDownloadStates = {};
-  
+
   // 下载任务跟踪（用于取消）
   final Map<Language, Future<void>> _modelDownloadTasks = {};
   final Map<Language, Future<void>> _dictionaryDownloadTasks = {};
 
   // 下载状态流
-  final StreamController<Map<Language, DownloadState>> _modelDownloadStatesController =
+  final StreamController<Map<Language, DownloadState>>
+      _modelDownloadStatesController =
       StreamController<Map<Language, DownloadState>>.broadcast();
-  final StreamController<Map<Language, DownloadState>> _dictionaryDownloadStatesController =
+  final StreamController<Map<Language, DownloadState>>
+      _dictionaryDownloadStatesController =
       StreamController<Map<Language, DownloadState>>.broadcast();
 
-  Stream<Map<Language, DownloadState>> get modelDownloadStates => _modelDownloadStatesController.stream;
-  Stream<Map<Language, DownloadState>> get dictionaryDownloadStates => _dictionaryDownloadStatesController.stream;
+  Stream<Map<Language, DownloadState>> get modelDownloadStates =>
+      _modelDownloadStatesController.stream;
+  Stream<Map<Language, DownloadState>> get dictionaryDownloadStates =>
+      _dictionaryDownloadStatesController.stream;
 
   /// 更新模型下载状态
-  void _updateModelDownloadState(Language language, DownloadState Function(DownloadState) update) {
-    final currentState = _modelDownloadStates[language] ?? const DownloadState();
+  void _updateModelDownloadState(
+    Language language,
+    DownloadState Function(DownloadState) update,
+  ) {
+    final currentState =
+        _modelDownloadStates[language] ?? const DownloadState();
     _modelDownloadStates[language] = update(currentState);
     _modelDownloadStatesController.add(Map.from(_modelDownloadStates));
   }
 
   /// 更新字典下载状态
-  void _updateDictionaryDownloadState(Language language, DownloadState Function(DownloadState) update) {
-    final currentState = _dictionaryDownloadStates[language] ?? const DownloadState();
+  void _updateDictionaryDownloadState(
+    Language language,
+    DownloadState Function(DownloadState) update,
+  ) {
+    final currentState =
+        _dictionaryDownloadStates[language] ?? const DownloadState();
     _dictionaryDownloadStates[language] = update(currentState);
-    _dictionaryDownloadStatesController.add(Map.from(_dictionaryDownloadStates));
+    _dictionaryDownloadStatesController.add(
+      Map.from(_dictionaryDownloadStates),
+    );
   }
 
   /// 开始下载语言模型
@@ -99,11 +114,14 @@ class DownloadService {
       return;
     }
 
-    _updateModelDownloadState(language, (state) => state.copyWith(
-      isDownloading: true,
-      isCompleted: false,
-      downloaded: 0,
-    ));
+    _updateModelDownloadState(
+      language,
+      (state) => state.copyWith(
+        isDownloading: true,
+        isCompleted: false,
+        downloaded: 0,
+      ),
+    );
 
     final task = _downloadModelFiles(language);
     _modelDownloadTasks[language] = task;
@@ -136,7 +154,10 @@ class DownloadService {
       }
 
       // 获取需要下载的文件
-      final (fromSize, missingFrom) = _getMissingFilesFrom(existingFiles, language);
+      final (fromSize, missingFrom) = _getMissingFilesFrom(
+        existingFiles,
+        language,
+      );
       final (toSize, missingTo) = _getMissingFilesTo(existingFiles, language);
 
       var totalSize = fromSize + toSize;
@@ -154,7 +175,8 @@ class DownloadService {
         if (files != null) {
           for (final fileName in missingTo) {
             final file = File(path.join(langDir.path, fileName));
-            final url = '$_defaultTranslationModelsBaseUrl/${files.modelType.value}/${language.code}en/$fileName.gz';
+            final url =
+                '$_defaultTranslationModelsBaseUrl/${files.modelType.value}/${language.code}en/$fileName.gz';
             fileProgressMap[fileName] = 0;
             downloadTasks.add(
               utils.downloadAndDecompress(
@@ -163,9 +185,10 @@ class DownloadService {
                 decompress: true,
                 onProgress: (downloaded, total) {
                   fileProgressMap[fileName] = downloaded;
-                  _updateModelDownloadState(language, (state) => state.copyWith(
-                    downloaded: getTotalDownloaded(),
-                  ));
+                  _updateModelDownloadState(
+                    language,
+                    (state) => state.copyWith(downloaded: getTotalDownloaded()),
+                  );
                 },
               ),
             );
@@ -179,7 +202,8 @@ class DownloadService {
         if (files != null) {
           for (final fileName in missingFrom) {
             final file = File(path.join(langDir.path, fileName));
-            final url = '$_defaultTranslationModelsBaseUrl/${files.modelType.value}/en${language.code}/$fileName.gz';
+            final url =
+                '$_defaultTranslationModelsBaseUrl/${files.modelType.value}/en${language.code}/$fileName.gz';
             fileProgressMap[fileName] = 0;
             downloadTasks.add(
               utils.downloadAndDecompress(
@@ -188,9 +212,10 @@ class DownloadService {
                 decompress: true,
                 onProgress: (downloaded, total) {
                   fileProgressMap[fileName] = downloaded;
-                  _updateModelDownloadState(language, (state) => state.copyWith(
-                    downloaded: getTotalDownloaded(),
-                  ));
+                  _updateModelDownloadState(
+                    language,
+                    (state) => state.copyWith(downloaded: getTotalDownloaded()),
+                  );
                 },
               ),
             );
@@ -199,14 +224,19 @@ class DownloadService {
       }
 
       // 更新总大小
-      _updateModelDownloadState(language, (state) => state.copyWith(totalSize: totalSize));
+      _updateModelDownloadState(
+        language,
+        (state) => state.copyWith(totalSize: totalSize),
+      );
 
       // 并行执行所有下载
       if (downloadTasks.isNotEmpty) {
-        info('Starting ${downloadTasks.length} download jobs for ${language.displayName}');
+        info(
+          'Starting ${downloadTasks.length} download jobs for ${language.displayName}',
+        );
         final results = await Future.wait(downloadTasks);
         final success = results.every((result) => result);
-        
+
         // 确保所有文件都已写入磁盘
         if (success) {
           // 强制同步文件系统 - 列出目录内容以确保文件系统更新
@@ -218,12 +248,12 @@ class DownloadService {
             warning('Failed to sync file system: $e');
           }
         }
-        
+
         // 更新状态，触发UI刷新
-        _updateModelDownloadState(language, (state) => state.copyWith(
-          isDownloading: false,
-          isCompleted: success,
-        ));
+        _updateModelDownloadState(
+          language,
+          (state) => state.copyWith(isDownloading: false, isCompleted: success),
+        );
 
         if (success) {
           info('Model download complete: ${language.displayName}');
@@ -231,22 +261,25 @@ class DownloadService {
           error('Model download failed: ${language.displayName}');
         }
       } else {
-        _updateModelDownloadState(language, (state) => state.copyWith(
-          isDownloading: false,
-          isCompleted: true,
-        ));
+        _updateModelDownloadState(
+          language,
+          (state) => state.copyWith(isDownloading: false, isCompleted: true),
+        );
       }
     } catch (e) {
       error('Model download failed for ${language.displayName}: $e');
-      _updateModelDownloadState(language, (state) => state.copyWith(
-        isDownloading: false,
-        error: e.toString(),
-      ));
+      _updateModelDownloadState(
+        language,
+        (state) => state.copyWith(isDownloading: false, error: e.toString()),
+      );
     }
   }
 
   /// 获取缺失的 from 文件
-  (int, List<String>) _getMissingFilesFrom(Set<String> existingFiles, Language language) {
+  (int, List<String>) _getMissingFilesFrom(
+    Set<String> existingFiles,
+    Language language,
+  ) {
     final files = fromEnglishFiles[language];
     if (files == null) {
       return (0, []);
@@ -267,7 +300,10 @@ class DownloadService {
   }
 
   /// 获取缺失的 to 文件
-  (int, List<String>) _getMissingFilesTo(Set<String> existingFiles, Language language) {
+  (int, List<String>) _getMissingFilesTo(
+    Set<String> existingFiles,
+    Language language,
+  ) {
     final files = toEnglishFiles[language];
     if (files == null) {
       return (0, []);
@@ -290,29 +326,37 @@ class DownloadService {
   /// 取消模型下载
   void cancelModelDownload(Language language) {
     // 注意：Dart 的 Future 无法直接取消，这里只是更新状态
-    _updateModelDownloadState(language, (state) => state.copyWith(
-      isDownloading: false,
-      isCancelled: true,
-      error: null,
-    ));
+    _updateModelDownloadState(
+      language,
+      (state) =>
+          state.copyWith(isDownloading: false, isCancelled: true, error: null),
+    );
     _modelDownloadTasks.remove(language);
     info('Cancelled model download for ${language.displayName}');
   }
 
   /// 开始下载字典
-  Future<void> startDictionaryDownload(Language language, {int? dictionarySize}) async {
+  Future<void> startDictionaryDownload(
+    Language language, {
+    int? dictionarySize,
+  }) async {
     // 如果已经在下载，不重复开始
     if (_dictionaryDownloadStates[language]?.isDownloading == true) {
-      debug('Dictionary download already in progress for ${language.displayName}');
+      debug(
+        'Dictionary download already in progress for ${language.displayName}',
+      );
       return;
     }
 
-    _updateDictionaryDownloadState(language, (state) => state.copyWith(
-      isDownloading: true,
-      isCompleted: false,
-      downloaded: 0,
-      totalSize: dictionarySize ?? 1000000,
-    ));
+    _updateDictionaryDownloadState(
+      language,
+      (state) => state.copyWith(
+        isDownloading: true,
+        isCompleted: false,
+        downloaded: 0,
+        totalSize: dictionarySize ?? 1000000,
+      ),
+    );
 
     final task = _downloadDictionaryFile(language);
     _dictionaryDownloadTasks[language] = task;
@@ -331,31 +375,35 @@ class DownloadService {
       final dictionaryFile = await utils.getLanguageDictionaryFile(language);
 
       if (await dictionaryFile.exists()) {
-        _updateDictionaryDownloadState(language, (state) => state.copyWith(
-          isDownloading: false,
-          isCompleted: true,
-        ));
+        _updateDictionaryDownloadState(
+          language,
+          (state) => state.copyWith(isDownloading: false, isCompleted: true),
+        );
         return;
       }
 
-      final url = '$_defaultDictionaryBaseUrl/$_dictVersion/${language.code}.dict';
+      final url =
+          '$_defaultDictionaryBaseUrl/$_dictVersion/${language.code}.dict';
       final success = await utils.downloadAndDecompress(
         url,
         dictionaryFile,
         decompress: false,
         onProgress: (downloaded, total) {
           // 更新下载进度
-          _updateDictionaryDownloadState(language, (state) => state.copyWith(
-            downloaded: downloaded,
-            totalSize: total > 0 ? total : state.totalSize,
-          ));
+          _updateDictionaryDownloadState(
+            language,
+            (state) => state.copyWith(
+              downloaded: downloaded,
+              totalSize: total > 0 ? total : state.totalSize,
+            ),
+          );
         },
       );
 
-      _updateDictionaryDownloadState(language, (state) => state.copyWith(
-        isDownloading: false,
-        isCompleted: success,
-      ));
+      _updateDictionaryDownloadState(
+        language,
+        (state) => state.copyWith(isDownloading: false, isCompleted: success),
+      );
 
       if (success) {
         info('Dictionary download complete: ${language.displayName}');
@@ -364,20 +412,20 @@ class DownloadService {
       }
     } catch (e) {
       error('Dictionary download failed for ${language.displayName}: $e');
-      _updateDictionaryDownloadState(language, (state) => state.copyWith(
-        isDownloading: false,
-        error: e.toString(),
-      ));
+      _updateDictionaryDownloadState(
+        language,
+        (state) => state.copyWith(isDownloading: false, error: e.toString()),
+      );
     }
   }
 
   /// 取消字典下载
   void cancelDictionaryDownload(Language language) {
-    _updateDictionaryDownloadState(language, (state) => state.copyWith(
-      isDownloading: false,
-      isCancelled: true,
-      error: null,
-    ));
+    _updateDictionaryDownloadState(
+      language,
+      (state) =>
+          state.copyWith(isDownloading: false, isCancelled: true, error: null),
+    );
     _dictionaryDownloadTasks.remove(language);
     info('Cancelled dictionary download for ${language.displayName}');
   }
@@ -426,7 +474,7 @@ class DownloadService {
   /// 清理临时文件
   Future<void> cleanupTempFiles() async {
     final modelsDir = await utils.getModelsDirectory();
-    
+
     if (await modelsDir.exists()) {
       await for (final entity in modelsDir.list()) {
         if (entity is Directory) {

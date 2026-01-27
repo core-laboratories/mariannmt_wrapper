@@ -15,11 +15,11 @@ import 'dart:ffi' as ffi;
 class BergamotTranslatorBindings {
   /// Holds the symbol lookup function.
   final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-  _lookup;
+      _lookup;
 
   /// The symbols are looked up in [dynamicLibrary].
   BergamotTranslatorBindings(ffi.DynamicLibrary dynamicLibrary)
-    : _lookup = dynamicLibrary.lookup;
+      : _lookup = dynamicLibrary.lookup;
 
   /// The symbols are looked up with [lookup].
   BergamotTranslatorBindings.fromLookup(
@@ -34,10 +34,10 @@ class BergamotTranslatorBindings {
 
   late final _bergamot_initialize_servicePtr =
       _lookup<ffi.NativeFunction<ffi.Int Function()>>(
-        'bergamot_initialize_service',
-      );
-  late final _bergamot_initialize_service = _bergamot_initialize_servicePtr
-      .asFunction<int Function()>();
+    'bergamot_initialize_service',
+  );
+  late final _bergamot_initialize_service =
+      _bergamot_initialize_servicePtr.asFunction<int Function()>();
 
   /// 加载模型到缓存
   /// cfg: 模型配置字符串（JSON格式）
@@ -50,12 +50,10 @@ class BergamotTranslatorBindings {
     return _bergamot_load_model(cfg, key);
   }
 
-  late final _bergamot_load_modelPtr =
-      _lookup<
-        ffi.NativeFunction<
-          ffi.Int Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)
-        >
-      >('bergamot_load_model');
+  late final _bergamot_load_modelPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('bergamot_load_model');
   late final _bergamot_load_model = _bergamot_load_modelPtr
       .asFunction<int Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>)>();
 
@@ -83,28 +81,24 @@ class BergamotTranslatorBindings {
     );
   }
 
-  late final _bergamot_translate_multiplePtr =
-      _lookup<
-        ffi.NativeFunction<
+  late final _bergamot_translate_multiplePtr = _lookup<
+      ffi.NativeFunction<
           ffi.Int Function(
             ffi.Pointer<ffi.Pointer<ffi.Char>>,
             ffi.Int,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Pointer<ffi.Pointer<ffi.Char>>>,
             ffi.Pointer<ffi.Int>,
-          )
-        >
-      >('bergamot_translate_multiple');
-  late final _bergamot_translate_multiple = _bergamot_translate_multiplePtr
-      .asFunction<
-        int Function(
-          ffi.Pointer<ffi.Pointer<ffi.Char>>,
-          int,
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Pointer<ffi.Pointer<ffi.Char>>>,
-          ffi.Pointer<ffi.Int>,
-        )
-      >();
+          )>>('bergamot_translate_multiple');
+  late final _bergamot_translate_multiple =
+      _bergamot_translate_multiplePtr.asFunction<
+          int Function(
+            ffi.Pointer<ffi.Pointer<ffi.Char>>,
+            int,
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Pointer<ffi.Pointer<ffi.Char>>>,
+            ffi.Pointer<ffi.Int>,
+          )>();
 
   /// 枢轴翻译（通过中间语言）
   /// first_key: 第一个模型缓存键（源语言 -> 中间语言）
@@ -133,9 +127,8 @@ class BergamotTranslatorBindings {
     );
   }
 
-  late final _bergamot_pivot_multiplePtr =
-      _lookup<
-        ffi.NativeFunction<
+  late final _bergamot_pivot_multiplePtr = _lookup<
+      ffi.NativeFunction<
           ffi.Int Function(
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
@@ -143,20 +136,16 @@ class BergamotTranslatorBindings {
             ffi.Int,
             ffi.Pointer<ffi.Pointer<ffi.Pointer<ffi.Char>>>,
             ffi.Pointer<ffi.Int>,
-          )
-        >
-      >('bergamot_pivot_multiple');
-  late final _bergamot_pivot_multiple = _bergamot_pivot_multiplePtr
-      .asFunction<
-        int Function(
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Pointer<ffi.Char>>,
-          int,
-          ffi.Pointer<ffi.Pointer<ffi.Pointer<ffi.Char>>>,
-          ffi.Pointer<ffi.Int>,
-        )
-      >();
+          )>>('bergamot_pivot_multiple');
+  late final _bergamot_pivot_multiple = _bergamot_pivot_multiplePtr.asFunction<
+      int Function(
+        ffi.Pointer<ffi.Char>,
+        ffi.Pointer<ffi.Char>,
+        ffi.Pointer<ffi.Pointer<ffi.Char>>,
+        int,
+        ffi.Pointer<ffi.Pointer<ffi.Pointer<ffi.Char>>>,
+        ffi.Pointer<ffi.Int>,
+      )>();
 
   /// 语言检测
   /// text: 待检测文本
@@ -171,34 +160,31 @@ class BergamotTranslatorBindings {
     return _bergamot_detect_language(text, hint, result);
   }
 
-  late final _bergamot_detect_languagePtr =
-      _lookup<
-        ffi.NativeFunction<
+  late final _bergamot_detect_languagePtr = _lookup<
+      ffi.NativeFunction<
           ffi.Int Function(
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<ffi.Char>,
             ffi.Pointer<BergamotDetectionResult>,
-          )
-        >
-      >('bergamot_detect_language');
-  late final _bergamot_detect_language = _bergamot_detect_languagePtr
-      .asFunction<
-        int Function(
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<ffi.Char>,
-          ffi.Pointer<BergamotDetectionResult>,
-        )
-      >();
+          )>>('bergamot_detect_language');
+  late final _bergamot_detect_language =
+      _bergamot_detect_languagePtr.asFunction<
+          int Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<BergamotDetectionResult>,
+          )>();
 
   /// 清理资源（释放所有模型和服务）
-  void bergamot_cleanup() {
-    return _bergamot_cleanup();
+  void bergamot_cleanup(bool reset_service) {
+    return _bergamot_cleanup(reset_service ? 1 : 0);
   }
 
   late final _bergamot_cleanupPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function()>>('bergamot_cleanup');
-  late final _bergamot_cleanup = _bergamot_cleanupPtr
-      .asFunction<void Function()>();
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int)>>(
+          'bergamot_cleanup');
+  late final _bergamot_cleanup =
+      _bergamot_cleanupPtr.asFunction<void Function(int)>();
 
   /// 释放字符串数组内存
   /// array: 字符串数组指针
@@ -210,12 +196,10 @@ class BergamotTranslatorBindings {
     return _bergamot_free_string_array(array, count);
   }
 
-  late final _bergamot_free_string_arrayPtr =
-      _lookup<
-        ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<ffi.Pointer<ffi.Char>>, ffi.Int)
-        >
-      >('bergamot_free_string_array');
+  late final _bergamot_free_string_arrayPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<ffi.Pointer<ffi.Char>>,
+              ffi.Int)>>('bergamot_free_string_array');
   late final _bergamot_free_string_array = _bergamot_free_string_arrayPtr
       .asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Char>>, int)>();
 }

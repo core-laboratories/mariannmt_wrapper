@@ -57,7 +57,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // best-effort: 不阻塞退出路径；同时确保 worker isolate 被关闭，避免进程无法退出。
     unawaited(() async {
       try {
-        await bergamot.BergamotTranslator.cleanupAsync()
+        await bergamot.BergamotTranslator.cleanupAsync(true)
             .timeout(const Duration(seconds: 2));
       } catch (_) {
         // ignore - best effort on exit

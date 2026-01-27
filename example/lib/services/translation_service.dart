@@ -19,7 +19,6 @@ class TranslationResult {
 /// 翻译服务
 class TranslationService {
   static TranslationService? _instance;
-  
   static TranslationService get instance {
     _instance ??= TranslationService._();
     return _instance!;
@@ -47,7 +46,7 @@ class TranslationService {
     if (from == to) {
       return true;
     }
-    
+
     final translationPairs = ModelManager.getTranslationPairs(from, to);
     for (final pair in translationPairs) {
       final from = pair.$1;
@@ -70,13 +69,13 @@ class TranslationService {
       final from = pair.$1;
       final to = pair.$2;
       final languageCode = '${from.code}${to.code}';
-      
+
       // 检查模型是否已加载（避免重复加载）
       if (_loadedModels.contains(languageCode)) {
         debug('Model $languageCode already loaded, skipping');
         continue; // 已加载，跳过
       }
-      
+
       debug('Preloading model with key: $languageCode');
       try {
         final config = _configCache[languageCode] ??
@@ -155,7 +154,8 @@ class TranslationService {
       return TranslationResult.success(results.join('\n'));
     } catch (e) {
       error('Batch translation failed: $e');
-      return TranslationResult.error('Batch translation failed: ${e.toString()}');
+      return TranslationResult.error(
+          'Batch translation failed: ${e.toString()}');
     }
   }
 
@@ -172,7 +172,8 @@ class TranslationService {
       // 枢轴翻译
       final toEng = '${pairs[0].$1.code}${pairs[0].$2.code}';
       final fromEng = '${pairs[1].$1.code}${pairs[1].$2.code}';
-      return bergamot.BergamotTranslator.pivotMultipleAsync(texts, toEng, fromEng);
+      return bergamot.BergamotTranslator.pivotMultipleAsync(
+          texts, toEng, fromEng);
     }
 
     return [];
@@ -185,7 +186,7 @@ class TranslationService {
         text,
         hint?.code,
       );
-      
+
       // 将语言代码转换为Language枚举
       try {
         return Language.values.firstWhere(
@@ -202,7 +203,7 @@ class TranslationService {
   }
 
   /// 清理资源
-  static Future<void> cleanup() async {
-    await bergamot.BergamotTranslator.cleanupAsync();
+  static Future<void> cleanup(bool resetService) async {
+    await bergamot.BergamotTranslator.cleanupAsync(resetService);
   }
 }
