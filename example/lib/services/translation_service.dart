@@ -203,7 +203,16 @@ class TranslationService {
   }
 
   /// 清理资源
-  static Future<void> cleanup(bool resetService) async {
-    await bergamot.BergamotTranslator.cleanupAsync(resetService);
+  static Future<void> cleanup({int timeout = 3}) async {
+    try {
+      await bergamot.BergamotTranslator.cleanupAsync(true).timeout(
+        Duration(seconds: timeout),
+      );
+    } catch (_) {
+      // ignore - best effort on exit
+    } finally {
+      // best-effort: 不阻塞退出路径
+      bergamot.BergamotTranslator.shutdownAsync();
+    }
   }
 }
