@@ -60,10 +60,9 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true # Added for pybind11
     )
 
-  # Keep PCRE2 on the same static MSVC runtime as Bergamot/Marian. Without
-  # this, the final wrapper DLL mixes /MD and /MT objects.
+  # Match the dynamic MSVC runtime used by Marian and the Flutter runner.
   if(MSVC)
-    LIST(APPEND PCRE2_CONFIGURE_OPTIONS -DPCRE2_STATIC_RUNTIME=ON)
+    LIST(APPEND PCRE2_CONFIGURE_OPTIONS -DPCRE2_STATIC_RUNTIME=OFF)
   endif()
 
   # Android platform needs to be explicitly passed given this is an external project.

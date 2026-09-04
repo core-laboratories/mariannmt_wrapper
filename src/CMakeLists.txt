@@ -66,12 +66,11 @@ set_target_properties(mariannmt_wrapper PROPERTIES
   POSITION_INDEPENDENT_CODE ON
 )
 
-# Bergamot and its bundled Marian dependencies are built against MSVC's
-# static runtime. The wrapper must use the same runtime or Visual Studio will
-# combine LIBCMT and MSVCRT and fail with LNK2038/LNK2005 at the final link.
+# Flutter's Windows runner and the bundled Marian targets use MSVC's dynamic
+# runtime. Keep the wrapper DLL on that runtime to prevent LNK2038/LNK2005.
 if(MSVC)
   set_property(TARGET mariannmt_wrapper PROPERTY
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
   )
 endif()
 

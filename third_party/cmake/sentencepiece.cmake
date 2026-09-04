@@ -83,11 +83,10 @@ if(TARGET sentencepiece-static)
         CXX_STANDARD_REQUIRED ON
     )
     if(MSVC)
-        # Modern CMake selects the MSVC runtime through this target property,
-        # so SentencePiece's legacy /MD -> /MT flag replacement can be a no-op.
-        # Keep it consistent with Marian and the wrapper to prevent LNK2038.
+        # Modern CMake selects the runtime through this property. Match the
+        # dynamic runtime used by Marian and the Flutter Windows runner.
         set_property(TARGET sentencepiece-static PROPERTY
-            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
         )
     endif()
 endif()
@@ -107,7 +106,7 @@ if(TARGET sentencepiece_train-static)
     )
     if(MSVC)
         set_property(TARGET sentencepiece_train-static PROPERTY
-            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
         )
     endif()
     # Ensure trainer_interface.cc uses C++14 to allow constexpr with static_cast
