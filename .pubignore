@@ -1,4 +1,5 @@
 # Vendored translation engine
+**/*.log
 third_party/bergamot-translator/examples/
 third_party/bergamot-translator/bergamot-translator-tests/
 third_party/bergamot-translator/doc/

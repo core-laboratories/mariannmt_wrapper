@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2
+
+- Maintenance release with no public API or native-engine compatibility
+  changes from 1.0.1.
+
 ## 1.0.1
 
 - Published after synchronizing the renamed package with its public repository.
