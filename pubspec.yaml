@@ -1,6 +1,6 @@
 name: mariannmt_wrapper
 description: Offline Marian neural machine translation for Flutter through a cross-platform FFI API.
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/core-laboratories/mariannmt_wrapper
 repository: https://github.com/core-laboratories/mariannmt_wrapper
 issue_tracker: https://github.com/core-laboratories/mariannmt_wrapper/issues
