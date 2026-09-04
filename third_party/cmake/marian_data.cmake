@@ -150,15 +150,19 @@ endif()
 # This enables the use of RUY library for optimized float matrix multiplication on CPU
 target_compile_definitions(marian-data PRIVATE USE_RUY_SGEMM=1)
 
-# Add compile options
-target_compile_options(marian-data PRIVATE
-    -Wno-unused-parameter
-    -Wno-unused-variable
-    -Wno-unused-value
-    -Wno-deprecated-declarations
-    -Wno-unknown-pragmas  # Suppress pragma diagnostic pop warnings from marian-dev/src/functional/operators.h
-    -fPIC
-)
+# Add compiler-specific warning options.
+if(MSVC)
+    target_compile_options(marian-data PRIVATE /W3 /wd4244 /wd4267 /wd4996)
+    target_compile_definitions(marian-data PRIVATE _CRT_SECURE_NO_WARNINGS)
+else()
+    target_compile_options(marian-data PRIVATE
+        -Wno-unused-parameter
+        -Wno-unused-variable
+        -Wno-unused-value
+        -Wno-deprecated-declarations
+        -Wno-unknown-pragmas
+    )
+endif()
 
 # For Android ARM platforms, ensure ARM, FMA, and SSE macros are defined
 # This is required for simd_utils.h to work correctly on ARM
@@ -206,4 +210,3 @@ target_link_libraries(bergamot-translator PUBLIC marian-data)
 # The original bergamot-translator CMakeLists.txt links: marian ssplit
 # We're building a minimal marian-data library for essential symbols like Word::ZERO.
 # If more marian symbols are needed, the full marian library will need to be built.
-

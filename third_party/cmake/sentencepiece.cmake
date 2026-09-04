@@ -28,7 +28,7 @@ add_subdirectory(${BERGAMOT_TRANSLATOR_ROOT_INCLUDE_DIR}/3rd_party EXCLUDE_FROM_
 
 # Suppress zlib compilation warnings
 # zlib is built as part of the 3rd_party subdirectory
-if(TARGET zlib)
+if(TARGET zlib AND NOT MSVC)
     target_compile_options(zlib PRIVATE -Wno-deprecated-non-prototype)
     message(STATUS "Added -Wno-deprecated-non-prototype to zlib target to suppress function prototype warnings")
 endif()
@@ -58,9 +58,11 @@ endif()
 if(TARGET sentencepiece-static)
     # Force C++14 standard using compile options (this overrides any parent C++17 setting)
     # C++14 is needed for constexpr compatibility in trainer_interface.cc
-    target_compile_options(sentencepiece-static PRIVATE 
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
-    )
+    if(NOT MSVC)
+        target_compile_options(sentencepiece-static PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
+        )
+    endif()
     # Also set target properties for consistency
     set_target_properties(sentencepiece-static PROPERTIES
         CXX_STANDARD 14
@@ -72,20 +74,23 @@ if(TARGET sentencepiece_train-static)
     # In C++11, static_cast for enum types is not considered a constant expression
     # We need C++14 or later for constexpr with static_cast to work properly
     # Force C++14 for the entire target to allow constexpr with static_cast
-    target_compile_options(sentencepiece_train-static PRIVATE 
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
-    )
+    if(NOT MSVC)
+        target_compile_options(sentencepiece_train-static PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>:-std=c++14>
+        )
+    endif()
     set_target_properties(sentencepiece_train-static PROPERTIES
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
     )
     # Ensure trainer_interface.cc uses C++14 to allow constexpr with static_cast
     # C++14 relaxed constexpr rules to allow static_cast in constexpr contexts
-    set_source_files_properties(
-        "${BERGAMOT_TRANSLATOR_ROOT_INCLUDE_DIR}/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc"
-        PROPERTIES 
-            COMPILE_FLAGS "-std=c++14"
-            CXX_STANDARD 14
-    )
+    if(NOT MSVC)
+        set_source_files_properties(
+            "${BERGAMOT_TRANSLATOR_ROOT_INCLUDE_DIR}/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc"
+            PROPERTIES
+                COMPILE_FLAGS "-std=c++14"
+                CXX_STANDARD 14
+        )
+    endif()
 endif()
-

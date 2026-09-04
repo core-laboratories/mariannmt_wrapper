@@ -22,12 +22,15 @@ target_include_directories(yaml-cpp PUBLIC
     ${YAML_CPP_DIR}
 )
 
-# Add compile options for yaml-cpp
-target_compile_options(yaml-cpp PRIVATE
-    -Wno-unused-value
-    -Wno-unused-parameter
-    -Wno-unused-variable
-    -Wno-deprecated-declarations  # Suppress deprecated iterator warnings
-    -fPIC
-)
-
+# Add compiler-specific warning options for yaml-cpp.
+if(MSVC)
+    target_compile_options(yaml-cpp PRIVATE /W3 /wd4244 /wd4267 /wd4996)
+    target_compile_definitions(yaml-cpp PRIVATE _CRT_SECURE_NO_WARNINGS)
+else()
+    target_compile_options(yaml-cpp PRIVATE
+        -Wno-unused-value
+        -Wno-unused-parameter
+        -Wno-unused-variable
+        -Wno-deprecated-declarations
+    )
+endif()
