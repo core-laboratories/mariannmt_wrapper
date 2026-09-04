@@ -29,4 +29,4 @@ jobs:
         run: |
           package_version="$(awk '/^version:/ { print $2; exit }' pubspec.yaml)"
           test "${GITHUB_REF_NAME}" = "${package_version}"
-      - run: dart pub publish --force
+      - run: flutter pub publish --force
