@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Published after synchronizing the renamed package with its public repository.
+
 ## 1.0.0
 
 - Renamed the package and public API to `mariannmt_wrapper`.
