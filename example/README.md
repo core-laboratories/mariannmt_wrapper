@@ -1,6 +1,6 @@
-# bergamot_translator_example
+# mariannmt_wrapper_example
 
-Demonstrates how to use the bergamot_translator plugin.
+Demonstrates how to use the mariannmt_wrapper plugin.
 
 ## Getting Started
 

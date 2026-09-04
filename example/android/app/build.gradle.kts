@@ -6,8 +6,8 @@ plugins {
 }
 
 android {
-    namespace = "com.example.bergamot_translator_example"
-    compileSdk = flutter.compileSdkVersion
+    namespace = "com.example.mariannmt_wrapper_example"
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -21,11 +21,11 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.bergamot_translator_example"
+        applicationId = "com.example.mariannmt_wrapper_example"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = maxOf(flutter.minSdkVersion, 28)
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 37
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 

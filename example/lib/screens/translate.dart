@@ -18,7 +18,7 @@ class TranslateScreen extends StatefulWidget {
 class _TranslateScreenState extends State<TranslateScreen> {
   final TextEditingController _inputController = TextEditingController();
   final TranslationService _translationService = TranslationService.instance;
-  
+
   Language _fromLanguage = Language.english;
   Language _toLanguage = Language.chinese;
   String _output = '';
@@ -47,10 +47,12 @@ class _TranslateScreenState extends State<TranslateScreen> {
   Future<void> _loadAvailableLanguages() async {
     // 检查已安装的语言
     final installedLanguages = await utils.getInstalledLanguages();
-    debug('Installed languages: ${installedLanguages.map((l) => l.displayName).join(", ")}');
-    
+    debug(
+        'Installed languages: ${installedLanguages.map((l) => l.displayName).join(", ")}');
+
     // 如果目标语言未安装，尝试选择第一个已安装的语言
-    if (!installedLanguages.contains(_toLanguage) && installedLanguages.isNotEmpty) {
+    if (!installedLanguages.contains(_toLanguage) &&
+        installedLanguages.isNotEmpty) {
       setState(() {
         _toLanguage = installedLanguages.first;
       });
@@ -89,8 +91,9 @@ class _TranslateScreenState extends State<TranslateScreen> {
 
     try {
       // 检查模型是否已安装
-      final isReady = await _translationService.isModelReady(_fromLanguage, _toLanguage);
-      
+      final isReady =
+          await _translationService.isModelReady(_fromLanguage, _toLanguage);
+
       if (isReady) {
         // 模型已准备好，加载模型（preloadModel 内部会检查是否已加载）
         await _translationService.preloadModel(_fromLanguage, _toLanguage);
@@ -98,14 +101,16 @@ class _TranslateScreenState extends State<TranslateScreen> {
           _isModelReady = true;
           _isLoadingModel = false;
         });
-        debug('Model loaded successfully for ${_fromLanguage.displayName} -> ${_toLanguage.displayName}');
+        debug(
+            'Model loaded successfully for ${_fromLanguage.displayName} -> ${_toLanguage.displayName}');
       } else {
         // 模型未安装
         setState(() {
           _isModelReady = false;
           _isLoadingModel = false;
         });
-        debug('Model not ready for ${_fromLanguage.displayName} -> ${_toLanguage.displayName}');
+        debug(
+            'Model not ready for ${_fromLanguage.displayName} -> ${_toLanguage.displayName}');
       }
     } catch (e) {
       setState(() {
@@ -135,7 +140,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
 
     // 自动检测语言
     _detectLanguage(text);
-    
+
     // 自动翻译（延迟一下，避免频繁翻译）
     Future.delayed(const Duration(milliseconds: 500), () {
       if (_inputController.text == text && text.isNotEmpty && _isModelReady) {
@@ -146,7 +151,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
 
   Future<void> _detectLanguage(String text) async {
     try {
-      final detected = await _translationService.detectLanguage(text, _fromLanguage);
+      final detected =
+          await _translationService.detectLanguage(text, _fromLanguage);
       if (detected != null && detected != _fromLanguage) {
         setState(() {
           _detectedLanguage = detected;
@@ -288,16 +294,16 @@ class _TranslateScreenState extends State<TranslateScreen> {
         children: [
           // 语言选择行
           _buildLanguageSelectionRow(),
-          
+
           // 输入区域
           Expanded(
             flex: 1,
             child: _buildInputArea(),
           ),
-          
+
           // 分隔线
           const Divider(height: 1),
-          
+
           // 输出区域
           Expanded(
             flex: 1,
@@ -331,14 +337,14 @@ class _TranslateScreenState extends State<TranslateScreen> {
               },
             ),
           ),
-          
+
           // 交换按钮
           IconButton(
             icon: const Icon(Icons.swap_horiz),
             onPressed: _swapLanguages,
             tooltip: '交换语言',
           ),
-          
+
           // 目标语言选择
           Expanded(
             child: _buildLanguageDropdown(
@@ -371,7 +377,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
       builder: (context, snapshot) {
         final languages = snapshot.data ?? Language.values;
         // 确保列表中没有重复项（使用 Set 去重）
-        final uniqueLanguages = languages.toSet().toList()..sort((a, b) => a.displayName.compareTo(b.displayName));
+        final uniqueLanguages = languages.toSet().toList()
+          ..sort((a, b) => a.displayName.compareTo(b.displayName));
         // 确保 value 在列表中，如果不在则使用 null（避免错误）
         final selectedValue = uniqueLanguages.contains(value) ? value : null;
         return DropdownButton<Language>(
@@ -467,9 +474,11 @@ class _TranslateScreenState extends State<TranslateScreen> {
                 ],
               ),
             ),
-          
+
           // 检测到的语言提示
-          if (_detectedLanguage != null && _detectedLanguage != _fromLanguage && _isModelReady)
+          if (_detectedLanguage != null &&
+              _detectedLanguage != _fromLanguage &&
+              _isModelReady)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               margin: const EdgeInsets.only(bottom: 8),
@@ -502,7 +511,7 @@ class _TranslateScreenState extends State<TranslateScreen> {
                 ],
               ),
             ),
-          
+
           // 输入框
           Expanded(
             child: TextField(
@@ -511,31 +520,27 @@ class _TranslateScreenState extends State<TranslateScreen> {
               expands: true,
               enabled: _isModelReady && !_isLoadingModel,
               decoration: InputDecoration(
-                hintText: _isModelReady 
-                    ? '输入要翻译的文本'
-                    : '请先下载并加载模型',
+                hintText: _isModelReady ? '输入要翻译的文本' : '请先下载并加载模型',
                 border: InputBorder.none,
                 suffixIcon: _inputController.text.isEmpty
                     ? IconButton(
                         icon: const Icon(Icons.paste),
-                        onPressed: _isModelReady && !_isLoadingModel 
-                            ? _pasteFromClipboard 
+                        onPressed: _isModelReady && !_isLoadingModel
+                            ? _pasteFromClipboard
                             : null,
                         tooltip: '粘贴',
                       )
                     : IconButton(
                         icon: const Icon(Icons.clear),
-                        onPressed: _isModelReady && !_isLoadingModel 
-                            ? _clearInput 
+                        onPressed: _isModelReady && !_isLoadingModel
+                            ? _clearInput
                             : null,
                         tooltip: '清除',
                       ),
               ),
               style: TextStyle(
                 fontSize: 16,
-                color: _isModelReady && !_isLoadingModel 
-                    ? null 
-                    : Colors.grey,
+                color: _isModelReady && !_isLoadingModel ? null : Colors.grey,
               ),
             ),
           ),
@@ -570,9 +575,9 @@ class _TranslateScreenState extends State<TranslateScreen> {
                 ),
             ],
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // 输出内容
           Expanded(
             child: _isTranslating
@@ -582,7 +587,8 @@ class _TranslateScreenState extends State<TranslateScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                            const Icon(Icons.error_outline,
+                                color: Colors.red, size: 48),
                             const SizedBox(height: 16),
                             Text(
                               _error!,

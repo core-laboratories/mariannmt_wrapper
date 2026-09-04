@@ -55,11 +55,16 @@ set_target_properties(cld2 PROPERTIES
     VERSION 1.0.0
 )
 
-target_compile_options(cld2 PRIVATE 
-    -Wno-narrowing
-    -Wno-non-c-typedef-for-linkage  # Suppress anonymous non-C-compatible type warnings
-    -Wno-deprecated-declarations
-)
+if(MSVC)
+    target_compile_options(cld2 PRIVATE /W3 /wd4244 /wd4267 /wd4996)
+    target_compile_definitions(cld2 PRIVATE NOMINMAX _CRT_SECURE_NO_WARNINGS)
+else()
+    target_compile_options(cld2 PRIVATE
+        -Wno-narrowing
+        -Wno-non-c-typedef-for-linkage
+        -Wno-deprecated-declarations
+    )
+endif()
 
 # Add include directories
 target_include_directories(cld2

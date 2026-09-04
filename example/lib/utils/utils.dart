@@ -113,7 +113,8 @@ Future<Directory> getLanguageModelDirectory(Language language) async {
 /// 获取字典目录（兼容旧结构，用于字典索引）
 Future<Directory> getDictionaryDirectory() async {
   final appDir = await getApplicationDocumentsDirectory();
-  final dictionaryDir = Directory(path.join(appDir.path, 'bergamot', 'dictionary'));
+  final dictionaryDir =
+      Directory(path.join(appDir.path, 'bergamot', 'dictionary'));
   if (!await dictionaryDir.exists()) {
     debug('Creating dictionary directory: ${dictionaryDir.path}');
     await dictionaryDir.create(recursive: true);
@@ -173,11 +174,11 @@ Future<void> deleteLanguageDirectory(Language language) async {
 Future<List<Language>> getInstalledLanguages() async {
   final modelsDir = await getModelsDirectory();
   final installed = <Language>[];
-  
+
   if (!await modelsDir.exists()) {
     return installed;
   }
-  
+
   await for (final entity in modelsDir.list()) {
     if (entity is Directory) {
       final langCode = path.basename(entity.path);
@@ -190,9 +191,11 @@ Future<List<Language>> getInstalledLanguages() async {
         final hasFiles = await _hasModelFiles(entity);
         if (hasFiles) {
           installed.add(language);
-          debug('Found installed language: ${language.displayName} (${language.code})');
+          debug(
+              'Found installed language: ${language.displayName} (${language.code})');
         } else {
-          debug('Language directory exists but no model files found: ${language.displayName} (${language.code})');
+          debug(
+              'Language directory exists but no model files found: ${language.displayName} (${language.code})');
         }
       } catch (e) {
         // 忽略无效的语言代码（firstWhere 找不到匹配项时会抛出异常）
@@ -200,7 +203,7 @@ Future<List<Language>> getInstalledLanguages() async {
       }
     }
   }
-  
+
   return installed;
 }
 
@@ -211,7 +214,7 @@ Future<bool> _hasModelFiles(Directory dir) async {
     if (entity is File) {
       final fileName = path.basename(entity.path);
       // 检查是否是模型文件（.bin, .spm等）
-      if (fileName.endsWith('.bin') || 
+      if (fileName.endsWith('.bin') ||
           fileName.endsWith('.spm') ||
           (fileName.endsWith('.dict') && fileName != 'dictionary.dict')) {
         hasFiles = true;

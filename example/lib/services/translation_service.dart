@@ -1,4 +1,4 @@
-import 'package:bergamot_translator/bergamot_translator.dart' as bergamot;
+import 'package:mariannmt_wrapper/mariannmt_wrapper.dart' as bergamot;
 import 'dart:async';
 
 import '../model/language.dart';
@@ -34,7 +34,7 @@ class TranslationService {
     try {
       // 避免在 UI isolate 同步初始化 FFI，改用后台 isolate 版本
       // ignore: unawaited_futures
-      bergamot.BergamotTranslator.initializeServiceAsync();
+      bergamot.MarianTranslator.initializeServiceAsync();
       info('TranslationService initialized');
     } catch (e) {
       error('Failed to initialize TranslationService: $e');
@@ -83,7 +83,7 @@ class TranslationService {
         _configCache[languageCode] = config;
 
         // 使用后台 isolate 版本加载，避免阻塞 UI
-        await bergamot.BergamotTranslator.loadModelAsync(config, languageCode);
+        await bergamot.MarianTranslator.loadModelAsync(config, languageCode);
         _loadedModels.add(languageCode); // 标记为已加载
         info('Preloaded model for ${from.displayName} -> ${to.displayName}');
       } catch (e) {
@@ -167,12 +167,12 @@ class TranslationService {
     if (pairs.length == 1) {
       // 直接翻译
       final code = '${pairs[0].$1.code}${pairs[0].$2.code}';
-      return bergamot.BergamotTranslator.translateMultipleAsync(texts, code);
+      return bergamot.MarianTranslator.translateMultipleAsync(texts, code);
     } else if (pairs.length == 2) {
       // 枢轴翻译
       final toEng = '${pairs[0].$1.code}${pairs[0].$2.code}';
       final fromEng = '${pairs[1].$1.code}${pairs[1].$2.code}';
-      return bergamot.BergamotTranslator.pivotMultipleAsync(
+      return bergamot.MarianTranslator.pivotMultipleAsync(
           texts, toEng, fromEng);
     }
 
@@ -182,7 +182,7 @@ class TranslationService {
   /// 检测语言
   Future<Language?> detectLanguage(String text, [Language? hint]) async {
     try {
-      final result = await bergamot.BergamotTranslator.detectLanguageAsync(
+      final result = await bergamot.MarianTranslator.detectLanguageAsync(
         text,
         hint?.code,
       );
@@ -205,14 +205,14 @@ class TranslationService {
   /// 清理资源
   static Future<void> cleanup({int timeout = 3}) async {
     try {
-      await bergamot.BergamotTranslator.cleanupAsync(true).timeout(
+      await bergamot.MarianTranslator.cleanupAsync(true).timeout(
         Duration(seconds: timeout),
       );
     } catch (_) {
       // ignore - best effort on exit
     } finally {
       // best-effort: 不阻塞退出路径
-      bergamot.BergamotTranslator.shutdownAsync();
+      bergamot.MarianTranslator.shutdownAsync();
     }
   }
 }

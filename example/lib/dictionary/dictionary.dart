@@ -1,5 +1,3 @@
-
-
 /// 字典信息
 class DictionaryInfo {
   final int date;
@@ -53,7 +51,8 @@ class DictionaryIndex {
     final dictionariesMap = <String, DictionaryInfo>{};
     if (json['dictionaries'] != null) {
       (json['dictionaries'] as Map<String, dynamic>).forEach((key, value) {
-        dictionariesMap[key] = DictionaryInfo.fromJson(value as Map<String, dynamic>);
+        dictionariesMap[key] =
+            DictionaryInfo.fromJson(value as Map<String, dynamic>);
       });
     }
     return DictionaryIndex(
@@ -65,7 +64,8 @@ class DictionaryIndex {
 
   Map<String, dynamic> toJson() {
     return {
-      'dictionaries': dictionaries.map((key, value) => MapEntry(key, value.toJson())),
+      'dictionaries':
+          dictionaries.map((key, value) => MapEntry(key, value.toJson())),
       'updatedAt': updatedAt,
       'version': version,
     };

@@ -71,4 +71,3 @@ class LanguageFiles {
 
   List<String> get allFiles => {model, srcVocab, tgtVocab, lex}.toList();
 }
-

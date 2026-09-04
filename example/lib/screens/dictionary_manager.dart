@@ -11,7 +11,8 @@ class DictionaryManagerScreen extends StatefulWidget {
   const DictionaryManagerScreen({super.key});
 
   @override
-  State<DictionaryManagerScreen> createState() => _DictionaryManagerScreenState();
+  State<DictionaryManagerScreen> createState() =>
+      _DictionaryManagerScreenState();
 }
 
 class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
@@ -30,8 +31,10 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
     _loadInstalledDictionaries();
     _loadInstalledModels();
     _loadDictionaryIndex();
-    _downloadStatesSubscription = _downloadService.dictionaryDownloadStates.listen((states) {
-      final previousStates = Map<Language, DownloadState>.from(_dictionaryDownloadStates);
+    _downloadStatesSubscription =
+        _downloadService.dictionaryDownloadStates.listen((states) {
+      final previousStates =
+          Map<Language, DownloadState>.from(_dictionaryDownloadStates);
       setState(() {
         _dictionaryDownloadStates = states;
       });
@@ -39,7 +42,7 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
       bool shouldReload = false;
       for (final entry in states.entries) {
         final previousState = previousStates[entry.key];
-        if (previousState?.isDownloading == true && 
+        if (previousState?.isDownloading == true &&
             entry.value.isCompleted == true &&
             entry.value.isDownloading == false) {
           shouldReload = true;
@@ -60,15 +63,15 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
     // 通过扫描models目录下的文件夹来检测已安装的语言
     final installedLanguagesList = await utils.getInstalledLanguages();
     final installed = <Language, bool>{};
-    
+
     // 英语作为内置语言，总是被视为已安装
     installed[Language.english] = true;
-    
+
     // 标记已安装的语言
     for (final language in installedLanguagesList) {
       installed[language] = true;
     }
-    
+
     // 对于其他语言，检查是否已安装
     for (final language in Language.values) {
       if (!installed.containsKey(language)) {
@@ -84,7 +87,7 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
         installed[language] = fromInstalled && toInstalled;
       }
     }
-    
+
     setState(() {
       _installedModels = installed;
     });
@@ -102,7 +105,7 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
     });
 
     final installed = <Language, bool>{};
-    
+
     for (final language in Language.values) {
       // 英语字典不是内置的，需要实际检查文件是否存在
       // 检查字典文件是否存在（新结构：models/{language_code}/dictionary.dict）
@@ -140,17 +143,17 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
     if (_dictionaryIndex == null) {
       return [];
     }
-    
+
     // 获取所有支持的语言（已安装模型的语言 + 字典索引中的语言）
     final availableLanguages = <Language>{};
-    
+
     // 添加已安装模型的语言（排除英语，因为英语模型是内置的，但字典不是）
     for (final entry in _installedModels.entries) {
       if (entry.key != Language.english) {
         availableLanguages.add(entry.key);
       }
     }
-    
+
     // 添加字典索引中的所有语言（包括英语，因为英语字典不是内置的，可以下载）
     for (final langCode in _dictionaryIndex!.dictionaries.keys) {
       try {
@@ -162,7 +165,7 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
         // 忽略无效的语言代码
       }
     }
-    
+
     // 返回未安装字典的语言（英语字典如果未安装也会显示在可用列表中）
     return availableLanguages
         .where((lang) => !(_installedDictionaries[lang] ?? false))
@@ -197,7 +200,8 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
     final sizeMB = info.size / (1024.0 * 1024.0);
     final entries = info.wordCount;
     final type = info.type;
-    final entriesStr = entries > 0 ? ' - ${_humanCount(entries)} 词条 - $type' : '';
+    final entriesStr =
+        entries > 0 ? ' - ${_humanCount(entries)} 词条 - $type' : '';
     if (sizeMB > 10) {
       return '${sizeMB.toInt()} MB$entriesStr';
     } else {
@@ -270,7 +274,8 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
                             ),
                           ),
                         ),
-                        ..._installedDictionaryList.map((lang) => _buildDictionaryItem(lang, true)),
+                        ..._installedDictionaryList
+                            .map((lang) => _buildDictionaryItem(lang, true)),
                       ],
                       if (_availableDictionaryList.isNotEmpty) ...[
                         const Padding(
@@ -283,7 +288,8 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
                             ),
                           ),
                         ),
-                        ..._availableDictionaryList.map((lang) => _buildDictionaryItem(lang, false)),
+                        ..._availableDictionaryList
+                            .map((lang) => _buildDictionaryItem(lang, false)),
                       ],
                     ],
                   ),
@@ -326,7 +332,8 @@ class _DictionaryManagerScreenState extends State<DictionaryManagerScreen> {
             ),
         ],
       ),
-      trailing: _buildActionButton(language, isInstalled, isDownloading, hasError, isCancelled),
+      trailing: _buildActionButton(
+          language, isInstalled, isDownloading, hasError, isCancelled),
     );
   }
 

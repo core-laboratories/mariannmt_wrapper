@@ -23,7 +23,16 @@ if(ANDROID)
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindThreadsAndroid.cmake)
 endif()
 
-project(bergamot_translator_library VERSION 0.0.1 LANGUAGES CXX)
+project(mariannmt_wrapper_library VERSION 1.0.0 LANGUAGES CXX)
+
+# The vendored Marian revision predates reliable Apple Silicon detection.
+# Seed its architecture selector when CMake is targeting ARM64.
+if((APPLE OR WIN32) AND
+   (CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|ARM64|aarch64)$" OR
+    CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(arm64|ARM64|aarch64)$" OR
+    CMAKE_OSX_ARCHITECTURES MATCHES "arm64"))
+  set(CMAKE_TARGET_ARCHITECTURE_CODE "arm" CACHE STRING "Marian target architecture" FORCE)
+endif()
 
 # Include third-party library configurations
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../third_party third_party)
@@ -35,27 +44,28 @@ if(IOS)
   set(_BERGAMOT_TRANSLATOR_LIBTYPE STATIC)
 endif()
 
-add_library(bergamot_translator ${_BERGAMOT_TRANSLATOR_LIBTYPE}
-  "bergamot_translator.cpp"
+add_library(mariannmt_wrapper ${_BERGAMOT_TRANSLATOR_LIBTYPE}
+  "mariannmt_wrapper.cpp"
 )
 
-set_target_properties(bergamot_translator PROPERTIES
-  PUBLIC_HEADER bergamot_translator.h
-  OUTPUT_NAME "bergamot_translator"
+set_target_properties(mariannmt_wrapper PROPERTIES
+  PUBLIC_HEADER mariannmt_wrapper.h
+  OUTPUT_NAME "mariannmt_wrapper"
+  POSITION_INDEPENDENT_CODE ON
 )
 
 # Set C++ standard to C++17 (required by bergamot-translator)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-target_compile_definitions(bergamot_translator PUBLIC DART_SHARED_LIB)
+target_compile_definitions(mariannmt_wrapper PUBLIC DART_SHARED_LIB)
 
 # Link third-party include directories and libraries
 # Note: bergamot-translator must come before other libraries to ensure proper symbol resolution
 # yaml-cpp must be linked before marian-data to ensure YAML::Clone symbols are available
 # ssplit must be linked for SentenceSplitter symbols (used by text_processor)
 # marian must be linked for ExpressionGraph and other marian core symbols (used by translation_model)
-target_link_libraries(bergamot_translator PRIVATE 
+target_link_libraries(mariannmt_wrapper PRIVATE
     bergamot-translator
     third_party_includes
     cld2
@@ -66,16 +76,26 @@ target_link_libraries(bergamot_translator PRIVATE
 )
 
 # Add compile options to suppress warnings
-target_compile_options(bergamot_translator PRIVATE
-    -Wno-unused-value  # Suppress "expression result unused" warnings
-    -Wno-deprecated-declarations  # Suppress deprecated iterator warnings from yaml-cpp and sprintf warnings from protobuf-lite
-    -Wno-unknown-pragmas  # Suppress pragma diagnostic pop warnings from marian-dev/src/functional/operators.h
-)
+if(MSVC)
+  target_compile_options(mariannmt_wrapper PRIVATE /W3 /wd4244 /wd4267 /wd4996)
+  target_compile_definitions(mariannmt_wrapper PRIVATE
+    NOMINMAX
+    _CRT_SECURE_NO_WARNINGS
+    WIN32_LEAN_AND_MEAN
+  )
+else()
+  target_compile_options(mariannmt_wrapper PRIVATE
+    -Wno-unused-value
+    -Wno-deprecated-declarations
+    -Wno-unknown-pragmas
+    -Wno-documentation
+  )
+endif()
 
 # macOS platform configuration
 if(APPLE AND NOT IOS)
     if(CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
-        target_compile_definitions(bergamot_translator PRIVATE
+        target_compile_definitions(mariannmt_wrapper PRIVATE
             ARM=1
             FMA=1
             SSE=1
@@ -84,7 +104,7 @@ if(APPLE AND NOT IOS)
             __ARM_NEON__=1
         )
     elseif(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
-        target_compile_options(bergamot_translator PRIVATE
+        target_compile_options(mariannmt_wrapper PRIVATE
             -msse4.1
         )
     endif()
@@ -92,5 +112,5 @@ endif()
 
 if (ANDROID)
   # Support Android 15 16k page size
-  target_link_options(bergamot_translator PRIVATE "-Wl,-z,max-page-size=16384")
+  target_link_options(mariannmt_wrapper PRIVATE "-Wl,-z,max-page-size=16384")
 endif()

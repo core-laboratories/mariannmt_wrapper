@@ -1,5 +1,5 @@
-name: bergamot_translator_example
-description: "Demonstrates how to use the bergamot_translator plugin."
+name: mariannmt_wrapper_example
+description: "Demonstrates how to use the mariannmt_wrapper plugin."
 publish_to: none
 
 version: 1.0.0+1
@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  bergamot_translator:
+  mariannmt_wrapper:
     path: ../
 
   cupertino_icons: ^1.0.8
@@ -21,13 +21,13 @@ dependencies:
   logging: ^1.3.0
   path: ^1.9.1
   path_provider: ^2.1.5
-  permission_handler: ^12.0.1
+  permission_handler: ^13.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true

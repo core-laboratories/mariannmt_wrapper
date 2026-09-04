@@ -159,12 +159,13 @@ class ModelManager {
     final lexFile = File(path.join(modelsPath, languageFiles.lex));
 
     // 对于中文，如果 srcvocab.enzh.spm 不存在，尝试使用 vocab.zhen.spm（反向模型的词汇文件）
-    if (!await srcVocabFile.exists() && 
-        from == Language.english && 
+    if (!await srcVocabFile.exists() &&
+        from == Language.english &&
         to == Language.chinese) {
       final alternativeVocab = File(path.join(modelsPath, 'vocab.zhen.spm'));
       if (await alternativeVocab.exists()) {
-        debug('Using alternative vocab file: vocab.zhen.spm instead of ${languageFiles.srcVocab}');
+        debug(
+            'Using alternative vocab file: vocab.zhen.spm instead of ${languageFiles.srcVocab}');
         srcVocabFile = alternativeVocab;
       }
     }
@@ -190,8 +191,7 @@ class ModelManager {
       'All model files verified: model=${modelFile.path}, srcVocab=${srcVocabFile.path}, tgtVocab=${tgtVocabFile.path}, lex=${lexFile.path}',
     );
 
-    final config =
-        '''
+    final config = '''
 models:
   - $modelsPath/${languageFiles.model}
 vocabs:

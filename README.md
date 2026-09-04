@@ -1,101 +1,102 @@
-# bergamot_translator
+# Marian NMT Wrapper
 
-A Flutter FFI plugin that provides FFI bindings for the [Bergamot Translator](https://github.com/browsermt/bergamot-translator) library.
+`mariannmt_wrapper` is a Flutter FFI plugin for private, offline neural
+machine translation on Android, iOS, Linux, macOS, and Windows.
 
-## Overview
+The package runs compatible Marian translation models locally. Text and model
+data are passed directly to native code and are not sent to a remote
+translation service.
 
-This library is an FFI wrapper for the Bergamot Translator, enabling Flutter applications to use offline machine translation capabilities directly from Dart code.
+## Features
 
-## Platform Support
+- Offline single and batch translation
+- Pivot translation through an intermediate language
+- Local language detection
+- Background-isolate APIs for work that should not block Flutter's UI isolate
+- Native builds for Android, iOS, Linux, macOS, and Windows
+- Compatible with models produced by [Mozilla Translations](https://github.com/mozilla/translations)
 
-### Supported Platforms
+## Requirements
 
-- **Linux**: Can compile for Linux and Android applications
-- **macOS**: Can compile for macOS, iOS, and Android applications
+- Flutter 3.32 or newer
+- Dart 3.8 or newer
+- A C++17 toolchain
+- CMake 3.14 or newer for desktop builds
+- Visual Studio 2022 with **Desktop development with C++** for Windows
 
-### Unsupported Platforms
+Native dependencies are included as reproducible source snapshots. Consumers
+do not need Git submodules and plugin builds do not download source code.
 
-- **Windows**: Currently cannot be compiled successfully
-
-## Prerequisites
-
-Before building this plugin, you need to initialize the submodules and apply the patch file to the third-party dependencies:
-
-```bash
-# Initialize submodules (if not already done)
-git submodule update --init --recursive
-
-# Apply the patch file from the project root directory
-# The patch paths are relative to the project root
-git apply third_party/patches/00-bergamot-translator.patch
-```
-
-**Note**: The patch file must be applied from the project root directory, not from within the submodule directory, because the patch paths are relative to the project root.
-
-The patch file (`third_party/patches/00-bergamot-translator.patch`) contains necessary modifications to the third-party dependencies for successful compilation.
-
-## Getting Started
-
-### Installation
-
-Add `bergamot_translator` to your `pubspec.yaml`:
+## Installation
 
 ```yaml
 dependencies:
-  bergamot_translator:
-    path: ../bergamot_translator  # or use git dependency
+  mariannmt_wrapper: ^1.0.0
 ```
 
-### Usage
+## Usage
 
-For example code and usage demonstrations, please refer to the [example](./example) directory.
+```dart
+import 'package:mariannmt_wrapper/mariannmt_wrapper.dart';
 
-## Project Structure
+Future<String> translate(String config, String text) async {
+  await MarianTranslator.initializeServiceAsync();
+  await MarianTranslator.loadModelAsync(config, 'en-de');
 
-This plugin follows the standard Flutter FFI plugin structure:
+  final translated = await MarianTranslator.translateMultipleAsync(
+    <String>[text],
+    'en-de',
+  );
+  return translated.single;
+}
+```
 
-* `src`: Contains the native source code and CMakeLists.txt for building the native library
-* `lib`: Contains the Dart code that defines the API and calls into native code using `dart:ffi`
-* `third_party`: Contains third-party dependencies including bergamot-translator
-* Platform folders (`android`, `ios`, `linux`, `macos`): Contains build files for each platform
+The model configuration is YAML and should contain absolute paths to the model,
+vocabulary, and shortlist files installed by the host application. See the
+[example](example/) for a complete model-loading flow.
 
-## Building Native Code
+Call `MarianTranslator.cleanupAsync(true)` when the translation service is no
+longer required. Prefer asynchronous methods in Flutter UI code because model
+initialization and inference are CPU-intensive.
 
-The native build systems used by this FFI plugin are:
+## Updating native sources
 
-* **Android**: Gradle, which invokes the Android NDK for native builds
-  * See `android/build.gradle`
-* **iOS and macOS**: Xcode, via CocoaPods
-  * See `ios/bergamot_translator.podspec`
-  * See `macos/bergamot_translator.podspec`
-* **Linux**: CMake
-  * See `linux/CMakeLists.txt`
+Upstream revisions are recorded in
+[`native_sources.lock`](native_sources.lock). Maintainers can refresh the
+vendored snapshots with:
 
-## Generating FFI Bindings
+```shell
+./tool/update_native_sources.sh
+```
 
-The Dart bindings are generated from the header file (`src/bergamot_translator.h`) using `package:ffigen`.
+The script clones exact upstream sources into a temporary directory, initializes
+their required dependencies, applies the portability patch, removes Git metadata
+and non-runtime material, and replaces the vendored source tree. Review and test
+that change before committing it. Builds never follow an unpinned branch.
 
-To regenerate the bindings:
+## Development
 
-```bash
+```shell
+flutter pub get
 dart run ffigen --config ffigen.yaml
+flutter analyze
+flutter test
+flutter build apk --debug
+flutter build linux --debug
+flutter build macos --debug
+flutter build windows --debug
 ```
 
-## Usage Notes
+Only run platform build commands on their matching host operating system.
 
-- Very short-running native functions can be directly invoked from any isolate
-- Longer-running functions should be invoked on a helper isolate to avoid dropping frames in Flutter applications
+## Model provenance
 
-## Example
-
-See the [example](./example) directory for a complete working example demonstrating how to use this plugin.
-
-## Additional Resources
-
-- [Flutter FFI Documentation](https://docs.flutter.dev/development/platform-integration/c-interop)
-- [Bergamot Translator](https://github.com/mozilla/bergamot-translator)
-- [Flutter Documentation](https://docs.flutter.dev)
+Mozilla's translation project contains the training pipeline, model registry,
+and inference integration that power Firefox Translations. Model quality,
+supported language pairs, model licenses, and file formats are determined by
+the selected model release. Applications should preserve and display the
+metadata and license shipped with each downloaded model.
 
 ## License
 
-See the LICENSE file for details.
+Licensed under the [Mozilla Public License 2.0](LICENSE).

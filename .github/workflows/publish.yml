@@ -1,36 +1,27 @@
-name: Publish to pub.dev
+name: Publish
 
 on:
   push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   publish:
+    if: github.repository == 'core-laboratories/mariannmt_wrapper'
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
+    environment: pub.dev
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          submodules: recursive
-          fetch-depth: 1
-      
-      - name: Apply patches
-        run: |
-          git apply third_party/patches/00-bergamot-translator.patch
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-  
-      - name: Flutter pub get
-        run: flutter pub get
-
-      - name: Setup Pub Credentials
-        uses: dart-lang/setup-dart@v1
-
-      - name: Flutter pub publish
-        run: dart pub publish --force
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: dart pub publish --force

@@ -58,13 +58,21 @@ endif()
 target_compile_definitions(bergamot-translator PRIVATE USE_RUY_SGEMM=1)
 
 # Add compile options to handle potential issues
-target_compile_options(bergamot-translator PRIVATE
-    -Wno-unused-parameter
-    -Wno-unused-variable
-    -Wno-unused-value  # Suppress "expression result unused" warnings
-    -Wno-deprecated-declarations  # Suppress deprecated iterator warnings from yaml-cpp
-    -fPIC  # Position Independent Code - required for linking into shared libraries
-)
+if(MSVC)
+    target_compile_options(bergamot-translator PRIVATE /W3 /wd4244 /wd4267 /wd4996)
+    target_compile_definitions(bergamot-translator PRIVATE
+        NOMINMAX
+        _CRT_SECURE_NO_WARNINGS
+        WIN32_LEAN_AND_MEAN
+    )
+else()
+    target_compile_options(bergamot-translator PRIVATE
+        -Wno-unused-parameter
+        -Wno-unused-variable
+        -Wno-unused-value
+        -Wno-deprecated-declarations
+    )
+endif()
 
 # For Android ARM platforms, ensure ARM, FMA, and SSE macros are defined
 # This is required for simd_utils.h to work correctly on ARM
@@ -73,4 +81,3 @@ if(ANDROID AND ANDROID_ABI MATCHES "arm")
     target_compile_definitions(bergamot-translator PRIVATE ARM FMA SSE)
     message(STATUS "Adding ARM FMA SSE compile definitions for bergamot-translator on Android ${ANDROID_ABI}")
 endif()
-

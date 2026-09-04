@@ -1,24 +1,24 @@
-name: bergamot_translator
-description: "Bergamot Translator is a Flutter FFI plugin for the Bergamot Translator library."
-version: 0.0.1
-homepage: https://github.com/jesses2025smith/bergamot_translator
-publish_to: https://pub.dev
+name: mariannmt_wrapper
+description: Offline Marian neural machine translation for Flutter through a cross-platform FFI API.
+version: 1.0.0
+homepage: https://github.com/core-laboratories/mariannmt_wrapper
+repository: https://github.com/core-laboratories/mariannmt_wrapper
+issue_tracker: https://github.com/core-laboratories/mariannmt_wrapper/issues
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
-  flutter: '>=3.3.0'
+  sdk: '>=3.8.0 <4.0.0'
+  flutter: '>=3.32.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  ffi: ^2.1.3
-  plugin_platform_interface: ^2.0.2
+  ffi: ^2.2.0
 
 dev_dependencies:
-  ffigen: ^13.0.0
+  ffigen: ^21.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   plugin:

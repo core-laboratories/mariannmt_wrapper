@@ -26,9 +26,10 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
   void initState() {
     super.initState();
     _loadInstalledLanguages();
-    _downloadStatesSubscription = _downloadService.modelDownloadStates.listen((states) {
+    _downloadStatesSubscription =
+        _downloadService.modelDownloadStates.listen((states) {
       final previousStates = Map<Language, DownloadState>.from(_downloadStates);
-      
+
       // 检查是否有下载完成，在更新状态之前
       bool shouldReload = false;
       Language? completedLanguage;
@@ -36,29 +37,32 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
         final previousState = previousStates[entry.key];
         final currentState = entry.value;
         // 如果从下载中变为已完成，需要重新加载
-        if (previousState?.isDownloading == true && 
+        if (previousState?.isDownloading == true &&
             currentState.isCompleted == true &&
             currentState.isDownloading == false) {
           shouldReload = true;
           completedLanguage = entry.key;
-          debug('Download completed for ${entry.key.displayName}, will reload installed languages');
+          debug(
+              'Download completed for ${entry.key.displayName}, will reload installed languages');
           break;
         }
       }
-      
+
       setState(() {
         _downloadStates = states;
       });
-      
+
       if (shouldReload && completedLanguage != null) {
         // 立即刷新一次，然后延迟再刷新一次确保文件系统同步完成
-        debug('Download completed for ${completedLanguage.displayName}, reloading installed languages');
+        debug(
+            'Download completed for ${completedLanguage.displayName}, reloading installed languages');
         _loadInstalledLanguages();
-        
+
         // 延迟再次刷新，确保所有文件都已写入磁盘
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) {
-            debug('Second reload after download completion to ensure file system sync');
+            debug(
+                'Second reload after download completion to ensure file system sync');
             _loadInstalledLanguages();
           }
         });
@@ -80,16 +84,17 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
     // 通过扫描models目录下的文件夹来检测已安装的语言
     final installedLanguagesList = await utils.getInstalledLanguages();
     final installed = <Language, bool>{};
-    
+
     // 英语作为内置语言，总是被视为已安装
     installed[Language.english] = true;
-    
+
     // 标记已安装的语言（从文件夹扫描结果）
     for (final language in installedLanguagesList) {
       installed[language] = true;
-      debug('Marked as installed from folder scan: ${language.displayName} (${language.code})');
+      debug(
+          'Marked as installed from folder scan: ${language.displayName} (${language.code})');
     }
-    
+
     // 对于其他语言，检查是否已安装（通过检查文件夹和文件）
     // 这样可以检测到部分安装的情况
     for (final language in Language.values) {
@@ -109,7 +114,8 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
         final isFullyInstalled = fromInstalled && toInstalled;
         installed[language] = isFullyInstalled;
         if (isFullyInstalled && !installedLanguagesList.contains(language)) {
-          debug('Marked as installed from file check: ${language.displayName} (${language.code})');
+          debug(
+              'Marked as installed from file check: ${language.displayName} (${language.code})');
         }
       }
     }
@@ -176,7 +182,8 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
                         ),
                       ),
                     ),
-                    ..._installedLanguageList.map((lang) => _buildLanguageItem(lang, true)),
+                    ..._installedLanguageList
+                        .map((lang) => _buildLanguageItem(lang, true)),
                   ],
                   if (_notInstalledLanguageList.isNotEmpty) ...[
                     const Padding(
@@ -189,7 +196,8 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
                         ),
                       ),
                     ),
-                    ..._notInstalledLanguageList.map((lang) => _buildLanguageItem(lang, false)),
+                    ..._notInstalledLanguageList
+                        .map((lang) => _buildLanguageItem(lang, false)),
                   ],
                 ],
               ),
@@ -229,7 +237,8 @@ class _ModelManagerScreenState extends State<ModelManagerScreen> {
             ),
         ],
       ),
-      trailing: _buildActionButton(language, isInstalled, isDownloading, hasError, isCancelled),
+      trailing: _buildActionButton(
+          language, isInstalled, isDownloading, hasError, isCancelled),
     );
   }
 

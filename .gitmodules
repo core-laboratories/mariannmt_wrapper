@@ -1,6 +1,0 @@
-[submodule "third_party/cld2"]
-	path = third_party/cld2
-	url = https://github.com/CLD2Owners/cld2.git
-[submodule "third_party/bergamot-translator"]
-	path = third_party/bergamot-translator
-	url = https://github.com/DavidVentura/bergamot-translator.git

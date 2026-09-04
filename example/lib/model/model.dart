@@ -1,4 +1,3 @@
-
 enum ModelType {
   base('base'),
   baseMemory('base-memory'),

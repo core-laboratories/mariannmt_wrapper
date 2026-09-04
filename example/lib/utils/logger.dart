@@ -1,6 +1,6 @@
 import 'package:logging/logging.dart';
 
-final _logger = Logger('bergamot_translator');
+final _logger = Logger('mariannmt_wrapper');
 
 void debug(String message) {
   _logger.fine(message);

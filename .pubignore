@@ -1,4 +1,4 @@
-# Bergamot Translator
+# Vendored translation engine
 third_party/bergamot-translator/examples/
 third_party/bergamot-translator/bergamot-translator-tests/
 third_party/bergamot-translator/doc/
@@ -40,3 +40,9 @@ third_party/cld2/internal/test_shuffle_1000_48_666.utf8.gz
 
 # Patches
 third_party/patches/
+.github/
+.gitmodules
+tool/
+/build/
+example/**/pubspec.lock
+example/**/Podfile.lock
