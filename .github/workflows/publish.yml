@@ -2,7 +2,7 @@ name: Publish
 
 on:
   push:
-    tags: ["v*.*.*"]
+    tags: ["*.*.*"]
 
 permissions:
   contents: read
@@ -24,4 +24,9 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+      - name: Verify tag matches package version
+        shell: bash
+        run: |
+          package_version="$(awk '/^version:/ { print $2; exit }' pubspec.yaml)"
+          test "${GITHUB_REF_NAME}" = "${package_version}"
       - run: dart pub publish --force

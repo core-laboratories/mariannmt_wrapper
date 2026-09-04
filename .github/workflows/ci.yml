@@ -30,9 +30,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            parallel: 2
+          - os: macos-latest
+            parallel: 2
+          - os: windows-latest
+            parallel: 1
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
       - run: cmake -S src -B build/native -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build/native --config Release --parallel 2
+      - run: cmake --build build/native --config Release --target mariannmt_wrapper --parallel ${{ matrix.parallel }}
