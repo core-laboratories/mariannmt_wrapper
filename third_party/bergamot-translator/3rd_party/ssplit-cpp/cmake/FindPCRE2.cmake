@@ -60,6 +60,12 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true # Added for pybind11
     )
 
+  # Keep PCRE2 on the same static MSVC runtime as Bergamot/Marian. Without
+  # this, the final wrapper DLL mixes /MD and /MT objects.
+  if(MSVC)
+    LIST(APPEND PCRE2_CONFIGURE_OPTIONS -DPCRE2_STATIC_RUNTIME=ON)
+  endif()
+
   # Android platform needs to be explicitly passed given this is an external project.
   # If not supplied armv8-a switches into armv7-a, making the compiled library
   # incompatible with an upstream bergamot-translator.

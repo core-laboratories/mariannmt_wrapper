@@ -12,6 +12,12 @@ if(POLICY CMP0153)
   cmake_policy(SET CMP0153 OLD)
 endif()
 
+# Allow targets to select the MSVC runtime through MSVC_RUNTIME_LIBRARY.
+# This policy must be set before project() initializes the compiler settings.
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
 # Android platform thread configuration (must be set before project() and add_subdirectory)
 # Android NDK has pthread support built-in, but CMake's FindThreads needs hints
 if(ANDROID)
@@ -59,6 +65,15 @@ set_target_properties(mariannmt_wrapper PROPERTIES
   OUTPUT_NAME "mariannmt_wrapper"
   POSITION_INDEPENDENT_CODE ON
 )
+
+# Bergamot and its bundled Marian dependencies are built against MSVC's
+# static runtime. The wrapper must use the same runtime or Visual Studio will
+# combine LIBCMT and MSVCRT and fail with LNK2038/LNK2005 at the final link.
+if(MSVC)
+  set_property(TARGET mariannmt_wrapper PROPERTY
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+  )
+endif()
 
 # Set C++ standard to C++17 (required by bergamot-translator)
 set(CMAKE_CXX_STANDARD 17)
