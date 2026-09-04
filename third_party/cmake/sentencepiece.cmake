@@ -26,6 +26,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # SentencePiece's CMakeLists.txt sets CMAKE_CXX_STANDARD to 11, but we override to 14 for trainer_interface.cc compatibility
 add_subdirectory(${BERGAMOT_TRANSLATOR_ROOT_INCLUDE_DIR}/3rd_party EXCLUDE_FROM_ALL)
 
+# Marian enables /WX for its own targets on MSVC. Recent Visual Studio releases
+# report narrowing conversions in Ruy's templated matrix adapter as C4244,
+# which makes the bundled third-party code fail before the wrapper is linked.
+# Keep warnings enabled, but do not promote upstream warnings to errors, and
+# silence the known conversion diagnostics on the target that compiles Ruy.
+if(MSVC AND TARGET marian)
+    target_compile_options(marian PRIVATE
+        /WX-
+        /wd4244
+        /wd4267
+    )
+    message(STATUS "Configured Marian warning compatibility for MSVC")
+endif()
+
 # Suppress zlib compilation warnings
 # zlib is built as part of the 3rd_party subdirectory
 if(TARGET zlib AND NOT MSVC)
