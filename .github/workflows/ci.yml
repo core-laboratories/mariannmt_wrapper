@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: DavidAnson/markdownlint-cli2-action@v22
+      - uses: DavidAnson/markdownlint-cli2-action@v24
   dart:
     runs-on: ubuntu-latest
     steps:
@@ -23,6 +23,8 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test
+      - name: Verify generated files are committed
+        run: git diff --exit-code
       - run: dart pub publish --dry-run
   native:
     strategy:
