@@ -82,6 +82,14 @@ if(TARGET sentencepiece-static)
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
     )
+    if(MSVC)
+        # Modern CMake selects the MSVC runtime through this target property,
+        # so SentencePiece's legacy /MD -> /MT flag replacement can be a no-op.
+        # Keep it consistent with Marian and the wrapper to prevent LNK2038.
+        set_property(TARGET sentencepiece-static PROPERTY
+            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+        )
+    endif()
 endif()
 if(TARGET sentencepiece_train-static)
     # trainer_interface.cc is part of sentencepiece_train-static and has constexpr issue
@@ -97,6 +105,11 @@ if(TARGET sentencepiece_train-static)
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
     )
+    if(MSVC)
+        set_property(TARGET sentencepiece_train-static PROPERTY
+            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+        )
+    endif()
     # Ensure trainer_interface.cc uses C++14 to allow constexpr with static_cast
     # C++14 relaxed constexpr rules to allow static_cast in constexpr contexts
     if(NOT MSVC)
