@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: DavidAnson/markdownlint-cli2-action@v22
+      - uses: DavidAnson/markdownlint-cli2-action@v24
   dart:
     runs-on: ubuntu-latest
     steps:
@@ -23,14 +23,25 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test
-      - run: dart pub publish --dry-run
+      - name: Verify generated files are committed
+        run: git diff --exit-code
+      - run: flutter pub publish --dry-run
   native:
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            parallel: 2
+          - os: macos-latest
+            parallel: 2
+          - os: windows-latest
+            parallel: 1
     runs-on: ${{ matrix.os }}
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.parallel }}
     steps:
       - uses: actions/checkout@v6
       - run: cmake -S src -B build/native -DCMAKE_BUILD_TYPE=Release
-      - run: cmake --build build/native --config Release --parallel 2
+      - run: cmake --build build/native --config Release --target mariannmt_wrapper --parallel ${{ matrix.parallel }}

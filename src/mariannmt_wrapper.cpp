@@ -17,7 +17,7 @@
 #include "translator/utils.h"
 #include "compact_lang_det.h"
 
-using namespace marian::bergamot;
+namespace bergamot = marian::bergamot;
 
 // 全局状态
 // macOS: marian/bergamot destructors can throw during shutdown, which triggers
@@ -26,10 +26,10 @@ using namespace marian::bergamot;
 // Workaround: keep the model cache alive until process exit by allocating it on
 // the heap on macOS, so its destructor is never run.
 #if defined(__APPLE__) && !defined(__IPHONE_OS_VERSION_MIN_REQUIRED)
-static auto* model_cache = new std::unordered_map<std::string, std::shared_ptr<TranslationModel>>();
+static auto* model_cache = new std::unordered_map<std::string, std::shared_ptr<bergamot::TranslationModel>>();
 #define MODEL_CACHE (*model_cache)
 #else
-static std::unordered_map<std::string, std::shared_ptr<TranslationModel>> model_cache;
+static std::unordered_map<std::string, std::shared_ptr<bergamot::TranslationModel>> model_cache;
 #define MODEL_CACHE model_cache
 #endif
 
@@ -39,7 +39,7 @@ static std::unordered_map<std::string, std::shared_ptr<TranslationModel>> model_
 // triggers std::terminate from a destructor and aborts the app.
 //
 // Keeping the service alive until process exit avoids invoking that destructor.
-static BlockingService* global_service = nullptr;
+static bergamot::BlockingService* global_service = nullptr;
 static std::mutex service_mutex;
 static std::mutex translation_mutex;
 
@@ -49,10 +49,10 @@ namespace {
         std::lock_guard<std::mutex> lock(service_mutex);
         
         if (global_service == nullptr) {
-            BlockingService::Config blockingConfig;
+            bergamot::BlockingService::Config blockingConfig;
             blockingConfig.cacheSize = 256;
             blockingConfig.logger.level = "off";
-            global_service = new BlockingService(blockingConfig);
+            global_service = new bergamot::BlockingService(blockingConfig);
         }
     }
     
@@ -69,10 +69,10 @@ namespace {
             auto pathsDir = "";
             
             // 解析配置
-            std::shared_ptr<marian::Options> options = parseOptionsFromString(cfg, validate, pathsDir);
+            std::shared_ptr<marian::Options> options = bergamot::parseOptionsFromString(cfg, validate, pathsDir);
             
             // 创建模型
-            MODEL_CACHE[key] = std::make_shared<TranslationModel>(options);
+            MODEL_CACHE[key] = std::make_shared<bergamot::TranslationModel>(options);
         } catch (const std::exception &e) {
             // 重新抛出异常，让调用者处理
             throw std::runtime_error("Failed to load model " + key + ": " + e.what());
@@ -92,12 +92,12 @@ namespace {
             throw std::runtime_error("Model not loaded: " + key_str);
         }
         
-        std::shared_ptr<TranslationModel> model = MODEL_CACHE[key_str];
+        std::shared_ptr<bergamot::TranslationModel> model = MODEL_CACHE[key_str];
         
-        std::vector<ResponseOptions> responseOptions;
+        std::vector<bergamot::ResponseOptions> responseOptions;
         responseOptions.reserve(inputs.size());
         for (size_t i = 0; i < inputs.size(); ++i) {
-            ResponseOptions opts;
+            bergamot::ResponseOptions opts;
             opts.HTML = false;
             opts.qualityScores = false;
             opts.alignment = false;
@@ -106,7 +106,7 @@ namespace {
         }
         
         std::lock_guard<std::mutex> translation_lock(translation_mutex);
-        std::vector<Response> responses = global_service->translateMultiple(model, std::move(inputs), responseOptions);
+        std::vector<bergamot::Response> responses = global_service->translateMultiple(model, std::move(inputs), responseOptions);
         
         std::vector<std::string> results;
         results.reserve(responses.size());
@@ -131,13 +131,13 @@ namespace {
             throw std::runtime_error("Second model not loaded: " + second_key_str);
         }
         
-        std::shared_ptr<TranslationModel> firstModel = MODEL_CACHE[first_key_str];
-        std::shared_ptr<TranslationModel> secondModel = MODEL_CACHE[second_key_str];
+        std::shared_ptr<bergamot::TranslationModel> firstModel = MODEL_CACHE[first_key_str];
+        std::shared_ptr<bergamot::TranslationModel> secondModel = MODEL_CACHE[second_key_str];
         
-        std::vector<ResponseOptions> responseOptions;
+        std::vector<bergamot::ResponseOptions> responseOptions;
         responseOptions.reserve(inputs.size());
         for (size_t i = 0; i < inputs.size(); ++i) {
-            ResponseOptions opts;
+            bergamot::ResponseOptions opts;
             opts.HTML = false;
             opts.qualityScores = false;
             opts.alignment = false;
@@ -146,7 +146,7 @@ namespace {
         }
         
         std::lock_guard<std::mutex> translation_lock(translation_mutex);
-        std::vector<Response> responses = global_service->pivotMultiple(firstModel, secondModel, std::move(inputs), responseOptions);
+        std::vector<bergamot::Response> responses = global_service->pivotMultiple(firstModel, secondModel, std::move(inputs), responseOptions);
         
         std::vector<std::string> results;
         results.reserve(responses.size());
@@ -416,4 +416,3 @@ FFI_PLUGIN_EXPORT void bergamot_free_string_array(char** array, int count) {
 }
 
 } // extern "C"
-

@@ -6,11 +6,15 @@
 #elif USE_ONNX_SGEMM
     #include "3rd_party/onnxjs/src/wasm-ops/gemm.h"
 #elif USE_RUY_SGEMM
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcomment"
+#endif
     #include "ruy/ruy.h"
     #include "ruy/system_aligned_alloc.h"
-#pragma GCC pop
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 #endif
 
 #if USE_RUY_SGEMM

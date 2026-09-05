@@ -60,6 +60,11 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true # Added for pybind11
     )
 
+  # Match the dynamic MSVC runtime used by Marian and the Flutter runner.
+  if(MSVC)
+    LIST(APPEND PCRE2_CONFIGURE_OPTIONS -DPCRE2_STATIC_RUNTIME=OFF)
+  endif()
+
   # Android platform needs to be explicitly passed given this is an external project.
   # If not supplied armv8-a switches into armv7-a, making the compiled library
   # incompatible with an upstream bergamot-translator.
@@ -80,8 +85,17 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
     )
   endif(IOS)
 
+  # MSVC gives static PCRE2 libraries an explicit "-static" suffix. Keep the
+  # declared byproduct in sync with the file installed by PCRE2 so downstream
+  # Visual Studio targets never receive the nonexistent pcre2-8.lib path.
+  if(MSVC)
+    set(PCRE2_LIBRARY_BASENAME "pcre2-8-static")
+  else()
+    set(PCRE2_LIBRARY_BASENAME "pcre2-8")
+  endif()
+
   # set include dirs and libraries for PCRE2
-  set(PCRE2_LIBRARIES ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}pcre2-8${CMAKE_STATIC_LIBRARY_SUFFIX})
+  set(PCRE2_LIBRARIES "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${PCRE2_LIBRARY_BASENAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
   set(PCRE2_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/include")
   set(PCRE2_FOUND TRUE CACHE BOOL "Found PCRE2 libraries" FORCE)
   
@@ -92,7 +106,10 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
     DOWNLOAD_DIR ${PCRE2_SRC_DIR}
     SOURCE_DIR ${PCRE2_SRC_DIR}
     CONFIGURE_COMMAND ${CMAKE_COMMAND} ${PCRE2_SRC_DIR} ${PCRE2_CONFIGURE_OPTIONS}
-    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>
+    # Multi-config generators ignore CMAKE_BUILD_TYPE. Explicitly selecting
+    # Release prevents MSVC from producing only the debug *staticd.lib file.
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target install
     INSTALL_DIR ${CMAKE_BINARY_DIR}
     BUILD_BYPRODUCTS ${PCRE2_LIBRARIES})
 

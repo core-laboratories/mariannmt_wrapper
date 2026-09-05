@@ -2,17 +2,12 @@ name: Publish
 
 on:
   push:
-    tags: ["v*.*.*"]
-
-permissions:
-  contents: read
-  id-token: write
+    tags: ["*.*.*"]
 
 jobs:
-  publish:
+  validate:
     if: github.repository == 'core-laboratories/mariannmt_wrapper'
     runs-on: ubuntu-latest
-    environment: pub.dev
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -24,4 +19,15 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      - run: dart pub publish --force
+      - name: Verify tag matches package version
+        shell: bash
+        run: |
+          package_version="$(awk '/^version:/ { print $2; exit }' pubspec.yaml)"
+          test "${GITHUB_REF_NAME}" = "${package_version}"
+      - run: flutter pub publish --dry-run
+
+  publish:
+    needs: validate
+    permissions:
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
