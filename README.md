@@ -89,6 +89,18 @@ flutter build windows --debug
 
 Only run platform build commands on their matching host operating system.
 
+On iOS, CocoaPods invokes `tool/build_ios.py` to build each requested `ARCHS`
+slice against the selected device or simulator SDK. The dependency archives are
+combined with Apple's `libtool` and `lipo`, including transitive libraries that
+vary by architecture. Native build regression checks can be run on macOS with:
+
+```shell
+python3 tool/test_build_ios.py
+```
+
+The regression fixture verifies both simulator architectures and a separate
+ARM64 device build without downloading translation models.
+
 ## Model provenance
 
 Mozilla's translation project contains the training pipeline, model registry,

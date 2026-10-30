@@ -117,18 +117,23 @@ if(IOS)
     set(SPM_BUILD_LIBRARY_ONLY OFF CACHE BOOL "Build SentencePiece CLI tools (required by marian-dev) " FORCE)
     message(STATUS "Configuring SentencePiece for iOS: CMAKE_MACOSX_BUNDLE=OFF, SPM_BUILD_LIBRARY_ONLY=OFF")
 
-    # iOS targets are ARM64; make sure marian-dev detects ARM and uses simd_utils/NEON paths.
-    set(USE_SIMD_UTILS ON CACHE BOOL "Enable simde to target instruction sets" FORCE)
     set(USE_WASM_COMPATIBLE_SOURCES OFF CACHE BOOL "Enable the minimal marian sources that compile to wasm" FORCE)
-    set(CMAKE_TARGET_ARCHITECTURE_CODE "arm" CACHE STRING "Target architecture code" FORCE)
-    add_compile_definitions(ARM FMA SSE)
-    message(STATUS "Configuring Marian for iOS ARM (USE_SIMD_UTILS=ON, USE_INTGEMM=OFF, ARM/FMA/SSE defs)")
 
-    # Avoid x86 CPU intrinsics detection on iOS:
-    # marian-dev adds -msse2/-msse3/... when BUILD_ARCH=native, which breaks arm64.
-    set(AUTO_CPU_DETECT OFF CACHE BOOL "Disable CPU feature detection for iOS cross-compile" FORCE)
-    set(BUILD_ARCH "armv8-a" CACHE STRING "Build architecture for iOS" FORCE)
-    message(STATUS "Setting BUILD_ARCH=armv8-a and AUTO_CPU_DETECT=OFF for iOS")
+    # CocoaPods requests arm64 and x86_64 for a generic simulator build.
+    # Each slice must select its own backend instead of inheriting host ARM.
+    if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+        set(USE_SIMD_UTILS ON CACHE BOOL "Enable NEON" FORCE)
+        set(CMAKE_TARGET_ARCHITECTURE_CODE "arm" CACHE STRING "Target architecture" FORCE)
+        add_compile_definitions(ARM FMA SSE)
+        set(BUILD_ARCH "armv8-a" CACHE STRING "iOS target architecture" FORCE)
+    elseif(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+        set(USE_SIMD_UTILS OFF CACHE BOOL "Use native x86 intrinsics" FORCE)
+        set(CMAKE_TARGET_ARCHITECTURE_CODE "x86_64" CACHE STRING "Target architecture" FORCE)
+        set(BUILD_ARCH "x86-64" CACHE STRING "iOS target architecture" FORCE)
+    else()
+        message(FATAL_ERROR "Build iOS slices separately: ${CMAKE_OSX_ARCHITECTURES}")
+    endif()
+    set(AUTO_CPU_DETECT OFF CACHE BOOL "Disable host CPU detection when cross compiling" FORCE)
 
     # iOS thread configuration:
     # CMake's FindThreads can fail under cross-compilation (sentencepiece does find_package(Threads)).
@@ -201,7 +206,7 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 # IMPORTANT: intgemm is x86/SSE-centric and includes <emmintrin.h>. For Android ARM (arm64-v8a/armeabi-v7a)
 # and macOS ARM64 this causes compilation failures ("emmintrin.h only meant for x86/x64").
 # Align behavior with marian-dev upstream: ARM builds should use RUY/NEON paths instead of intgemm.
-if((ANDROID AND ANDROID_ABI MATCHES "arm") OR (IOS) OR (APPLE AND NOT IOS AND CMAKE_OSX_ARCHITECTURES MATCHES "arm64"))
+if((ANDROID AND ANDROID_ABI MATCHES "arm") OR (IOS AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64") OR (APPLE AND NOT IOS AND CMAKE_OSX_ARCHITECTURES MATCHES "arm64"))
     set(USE_INTGEMM OFF CACHE BOOL "Use INTGEMM" FORCE)
     if(ANDROID)
         message(STATUS "Disabling USE_INTGEMM for Android ARM ABI ${ANDROID_ABI}")

@@ -28,7 +28,7 @@ if(ANDROID)
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindThreadsAndroid.cmake)
 endif()
 
-project(mariannmt_wrapper_library VERSION 1.0.0 LANGUAGES CXX)
+project(mariannmt_wrapper_library VERSION 1.0.3 LANGUAGES CXX)
 
 # The bundled Marian revision only detects Apple Silicon reliably when this
 # standard CMake variable is populated. Without it, ARM builds select intgemm's

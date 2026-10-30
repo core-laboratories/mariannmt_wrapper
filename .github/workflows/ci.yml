@@ -43,5 +43,8 @@ jobs:
       CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.parallel }}
     steps:
       - uses: actions/checkout@v6
+      - name: Test iOS archive builder
+        if: runner.os == 'macOS'
+        run: python3 tool/test_build_ios.py
       - run: cmake -S src -B build/native -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build/native --config Release --target mariannmt_wrapper --parallel ${{ matrix.parallel }}

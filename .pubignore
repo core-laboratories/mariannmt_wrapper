@@ -43,7 +43,8 @@ third_party/cld2/internal/test_shuffle_1000_48_666.utf8.gz
 third_party/patches/
 .github/
 .gitmodules
-tool/
+tool/*
+!tool/build_ios.py
 /build/
 example/**/pubspec.lock
 example/**/Podfile.lock
