@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+- Fix iOS simulator linker errors by building every requested architecture and
+  combining the native dependencies into one universal static archive.
+- Select ARM/NEON or x86/intgemm configuration per target architecture.
+
 ## 1.0.2
 
 - Maintenance release with no public API or native-engine compatibility
