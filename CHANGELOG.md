@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Follow the latest official Bergamot upstream with a verified, pinned snapshot.
+- Preserve mobile and Windows portability fixes when refreshing native sources.
+- Bundle checksum-verified PCRE2 during refresh for offline consumer builds.
+- Add real-model native tests and daily upstream compatibility checks that open
+  update PRs only after native and Flutter platform checks pass.
+
 ## 1.0.3
 
 - Fix iOS simulator linker errors by building every requested architecture and

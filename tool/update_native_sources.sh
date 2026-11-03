@@ -2,18 +2,40 @@
 set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-lock_file="${root_dir}/native_sources.lock"
+sources_file="${root_dir}/tool/native_sources.conf"
 latest=false
+check_only=false
 
 if [[ "${1:-}" == "--latest" ]]; then
 	latest=true
+elif [[ "${1:-}" == "--check" ]]; then
+	check_only=true
 elif [[ $# -gt 0 ]]; then
-	echo "Usage: $0 [--latest]" >&2
+	echo "Usage: $0 [--latest|--check]" >&2
 	exit 64
 fi
 
 # shellcheck source=/dev/null
-source "${lock_file}"
+source "${sources_file}"
+
+if [[ "${latest}" == true || "${check_only}" == true ]]; then
+	upstream_revision="$(git ls-remote "${ENGINE_REPOSITORY}" HEAD | awk '{print $1}')"
+	if [[ ! "${upstream_revision}" =~ ^[0-9a-f]{40}$ ]]; then
+		echo "Could not resolve the official Bergamot HEAD." >&2
+		exit 1
+	fi
+	if [[ "${check_only}" == true ]]; then
+		printf 'Pinned Bergamot: %s\nUpstream HEAD:   %s\n' "${ENGINE_REVISION}" "${upstream_revision}"
+		[[ "${ENGINE_REVISION}" == "${upstream_revision}" ]] && exit 0
+		exit 2
+	fi
+	ENGINE_REVISION="${upstream_revision}"
+	CLD2_REVISION="$(git ls-remote "${CLD2_REPOSITORY}" HEAD | awk '{print $1}')"
+	if [[ ! "${CLD2_REVISION}" =~ ^[0-9a-f]{40}$ ]]; then
+		echo "Could not resolve CLD2 HEAD." >&2
+		exit 1
+	fi
+fi
 
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/mariannmt-sources.XXXXXX")"
 trap 'rm -rf "${work_dir}"' EXIT
@@ -28,11 +50,6 @@ clone_source() {
 	git -C "${destination}" submodule update --init --recursive --depth 1
 }
 
-if [[ "${latest}" == true ]]; then
-	ENGINE_REVISION="$(git ls-remote "${ENGINE_REPOSITORY}" HEAD | awk '{print $1}')"
-	CLD2_REVISION="$(git ls-remote "${CLD2_REPOSITORY}" HEAD | awk '{print $1}')"
-fi
-
 clone_source "${ENGINE_REPOSITORY}" "${ENGINE_REVISION}" \
 	"${work_dir}/third_party/bergamot-translator"
 clone_source "${CLD2_REPOSITORY}" "${CLD2_REVISION}" \
@@ -45,6 +62,28 @@ if ! git -C "${work_dir}" apply \
 	exit 1
 fi
 
+# Consumer builds must not download PCRE2 into their package source tree.
+# Fetch and verify the exact ssplit release while maintaining the snapshots.
+curl --fail --location --silent --show-error --retry 3 \
+	"${PCRE2_ARCHIVE_URL}" -o "${work_dir}/pcre2.tar.gz"
+if command -v sha256sum >/dev/null 2>&1; then
+	archive_digest="$(sha256sum "${work_dir}/pcre2.tar.gz" | awk '{print $1}')"
+else
+	archive_digest="$(shasum -a 256 "${work_dir}/pcre2.tar.gz" | awk '{print $1}')"
+fi
+if [[ "${archive_digest}" != "${PCRE2_ARCHIVE_SHA256}" ]]; then
+	echo "PCRE2 archive checksum mismatch; no repository files were replaced." >&2
+	exit 1
+fi
+pcre_parent="${work_dir}/third_party/bergamot-translator/3rd_party/ssplit-cpp/src/3rd-party"
+mkdir -p "${pcre_parent}"
+tar -xzf "${work_dir}/pcre2.tar.gz" -C "${pcre_parent}"
+pcre_version="$(sed -n 's/.*set(PCRE2_VERSION "\([^"]*\)").*/\1/p' "${work_dir}/third_party/bergamot-translator/3rd_party/ssplit-cpp/cmake/FindPCRE2.cmake")"
+if [[ ! -f "${pcre_parent}/pcre2-${pcre_version}/configure" ]]; then
+	echo "PCRE2 archive does not match ssplit's required version; update tool/native_sources.conf." >&2
+	exit 1
+fi
+
 find "${work_dir}/third_party" \
 	\( -name .git -o -name .gitmodules \) -prune -exec rm -rf {} +
 
@@ -52,8 +91,15 @@ find "${work_dir}/third_party" \
 # to warn about vendored source files that are intentionally checked in.
 find "${work_dir}/third_party" -name .gitignore -type f -delete
 
+# Runtime sources do not need dependency-manager lock files.
+find "${work_dir}/third_party" -type f \
+	\( -name '*.lock' -o -name '*.lockb' -o -name '*.lock.*' \
+	   -o -name '*-lock.json' -o -name '*-lock.yaml' -o -name '*-lock.yml' \
+	   -o -name 'npm-shrinkwrap.json' \) -delete
+
 for relative_path in \
 	"bergamot-translator/.github" \
+	"bergamot-translator/.circleci" \
 	"bergamot-translator/doc" \
 	"bergamot-translator/examples" \
 	"bergamot-translator/wasm" \
@@ -103,8 +149,8 @@ if [[ "${latest}" == true ]]; then
 		/^ENGINE_REVISION=/ {$0="ENGINE_REVISION=" engine}
 		/^CLD2_REVISION=/ {$0="CLD2_REVISION=" cld2}
 		{print}
-	' "${lock_file}" > "${lock_file}.tmp"
-	mv "${lock_file}.tmp" "${lock_file}"
+	' "${sources_file}" > "${sources_file}.tmp"
+	mv "${sources_file}.tmp" "${sources_file}"
 fi
 
 echo "Vendored native sources refreshed."

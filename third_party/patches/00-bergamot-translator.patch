@@ -1,8 +1,7 @@
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/cmake/TargetArch.cmake b/third_party/bergamot-translator/3rd_party/marian-dev/cmake/TargetArch.cmake
-index f653e3e..335043c 100644
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/cmake/TargetArch.cmake
 +++ b/third_party/bergamot-translator/3rd_party/marian-dev/cmake/TargetArch.cmake
-@@ -79,6 +79,8 @@ function(target_architecture output_var)
+@@ -79,6 +79,8 @@
                  set(osx_arch_i386 TRUE)
              elseif("${osx_arch}" STREQUAL "x86_64")
                  set(osx_arch_x86_64 TRUE)
@@ -11,32 +10,24 @@ index f653e3e..335043c 100644
              elseif("${osx_arch}" STREQUAL "ppc64" AND ppc_support)
                  set(osx_arch_ppc64 TRUE)
              else()
-@@ -99,6 +101,10 @@ function(target_architecture output_var)
+@@ -97,6 +99,10 @@
+ 
+         if(osx_arch_x86_64)
              list(APPEND ARCH x86_64)
-         endif()
-
-+        if(osx_arch_arm64)
-+           list(APPEND ARCH arm64)
 +        endif()
 +
-         if(osx_arch_ppc64)
-             list(APPEND ARCH ppc64)
++        if(osx_arch_arm64)
++           list(APPEND ARCH arm64)
          endif()
-diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece
---- a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece
-+++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece
-@@ -1 +1 @@
--Subproject commit ae41b7740d7006596bb9257e83340b2620db9d00
-+Subproject commit ae41b7740d7006596bb9257e83340b2620db9d00-dirty
+ 
+         if(osx_arch_ppc64)
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zlib/zutil.h b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zlib/zutil.h
-index b079ea6..953dc65 100644
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zlib/zutil.h
 +++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zlib/zutil.h
-@@ -130,7 +130,15 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
+@@ -130,7 +130,15 @@
  #  endif
  #endif
--
-+
+ 
 -#if defined(MACOS) || defined(TARGET_OS_MAC)
 +/* NOTE:
 + * The legacy "MACOS"/"TARGET_OS_MAC" code path is intended for classic Mac OS
@@ -51,10 +42,9 @@ index b079ea6..953dc65 100644
  #  ifndef Z_SOLO
  #    if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zstr/strict_fstream.hpp b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zstr/strict_fstream.hpp
-index 7b11739..948e91e 100644
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zstr/strict_fstream.hpp
 +++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/zstr/strict_fstream.hpp
-@@ -27,7 +27,7 @@ static std::string strerror()
+@@ -27,7 +27,7 @@
      {
          buff = "Unknown error";
      }
@@ -64,10 +54,9 @@ index 7b11739..948e91e 100644
      if (strerror_r(errno, &buff[0], buff.size()) != 0)
      {
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/CMakeLists.txt b/third_party/bergamot-translator/3rd_party/marian-dev/src/CMakeLists.txt
-index f041ac7..699eb61 100644
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/src/CMakeLists.txt
 +++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/CMakeLists.txt
-@@ -148,21 +148,33 @@ target_compile_options(marian PRIVATE ${ALL_WARNINGS})
+@@ -148,21 +148,33 @@
  # We set MARIAN_GIT_DIR to the appropriate path, depending on whether
  # ${CMAKE_CURRENT_SOURCE_DIR}/../.git is a directory or file.
  set(MARIAN_GIT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../.git)
@@ -79,8 +68,7 @@ index f041ac7..699eb61 100644
      get_filename_component(MARIAN_GIT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../${MARIAN_GIT_DIR}" ABSOLUTE)
    endif()
 -endif(NOT IS_DIRECTORY ${MARIAN_GIT_DIR})
-+endif()
- 
+-
 -add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h
 -  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 -  COMMAND git log -1 --pretty=format:\#define\ GIT_REVISION\ \"\%h\ \%ai\" > ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h
@@ -88,6 +76,8 @@ index f041ac7..699eb61 100644
 -  VERBATIM
 -)
 -add_custom_target(marian_version DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h)
++endif()
++
 +set(GIT_REVISION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h)
 +
 +# In some build setups (e.g. Flutter .plugin_symlinks), Marian's .git metadata is not available.
@@ -111,7 +101,6 @@ index f041ac7..699eb61 100644
  # make sure all local dependencies are installed first before this is built
  add_dependencies(marian 3rd_party_installs)
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/microsoft/quicksand.h b/third_party/bergamot-translator/3rd_party/marian-dev/src/microsoft/quicksand.h
-index 87de194..32e23a3 100755
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/src/microsoft/quicksand.h
 +++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/microsoft/quicksand.h
 @@ -1,4 +1,5 @@
@@ -121,10 +110,9 @@ index 87de194..32e23a3 100755
  #include <string>
  #include <tuple>
 diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc
-index 31659cb..da13b8e 100644
 --- a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc
 +++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/sentencepiece/src/trainer_interface.cc
-@@ -208,8 +208,11 @@ bool TrainerInterface::IsValidSentencePiece(
+@@ -208,8 +208,11 @@
      return false;
    }
  
@@ -139,10 +127,9 @@ index 31659cb..da13b8e 100644
    auto is_number = [](char32 c) { return (c >= 0x30 && c <= 0x39); };
  
 diff --git a/third_party/bergamot-translator/3rd_party/ssplit-cpp/cmake/FindPCRE2.cmake b/third_party/bergamot-translator/3rd_party/ssplit-cpp/cmake/FindPCRE2.cmake
-index 8ea55cb..96e61a0 100644
 --- a/third_party/bergamot-translator/3rd_party/ssplit-cpp/cmake/FindPCRE2.cmake
 +++ b/third_party/bergamot-translator/3rd_party/ssplit-cpp/cmake/FindPCRE2.cmake
-@@ -28,9 +28,10 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
+@@ -28,9 +28,10 @@
      message("Downloading pcre2 source code from ${PCRE2_URL}")
    endif()
  
@@ -156,7 +143,7 @@ index 8ea55cb..96e61a0 100644
      set(PCRE2_JIT_OPTION  "-DPCRE2_SUPPORT_JIT=OFF")
    else()
      set(PCRE2_JIT_OPTION  "-DPCRE2_SUPPORT_JIT=ON")
-@@ -47,6 +48,12 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
+@@ -47,11 +48,22 @@
      -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}
      -DCMAKE_BUILD_TYPE=Release
      -DCMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}
@@ -169,7 +156,17 @@ index 8ea55cb..96e61a0 100644
      ${PCRE2_JIT_OPTION}
      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} # Necessary for proper MacOS compilation
      -DCMAKE_CROSSCOMPILING_EMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR_WITH_SEMICOLON} # Necessary for proper MacOS compilation
-@@ -63,6 +70,15 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
+     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true # Added for pybind11
+     )
++
++  # Match the dynamic MSVC runtime used by Marian and the Flutter runner.
++  if(MSVC)
++    LIST(APPEND PCRE2_CONFIGURE_OPTIONS -DPCRE2_STATIC_RUNTIME=OFF)
++  endif()
+ 
+   # Android platform needs to be explicitly passed given this is an external project.
+   # If not supplied armv8-a switches into armv7-a, making the compiled library
+@@ -63,9 +75,27 @@
      )
    endif(ANDROID)
  
@@ -182,6 +179,194 @@ index 8ea55cb..96e61a0 100644
 +      -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
 +    )
 +  endif(IOS)
++
++  # MSVC gives static PCRE2 libraries an explicit "-static" suffix. Keep the
++  # declared byproduct in sync with the file installed by PCRE2 so downstream
++  # Visual Studio targets never receive the nonexistent pcre2-8.lib path.
++  if(MSVC)
++    set(PCRE2_LIBRARY_BASENAME "pcre2-8-static")
++  else()
++    set(PCRE2_LIBRARY_BASENAME "pcre2-8")
++  endif()
  
    # set include dirs and libraries for PCRE2
-   set(PCRE2_LIBRARIES ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}pcre2-8${CMAKE_STATIC_LIBRARY_SUFFIX})
+-  set(PCRE2_LIBRARIES ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}pcre2-8${CMAKE_STATIC_LIBRARY_SUFFIX})
++  set(PCRE2_LIBRARIES "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${PCRE2_LIBRARY_BASENAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+   set(PCRE2_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/include")
+   set(PCRE2_FOUND TRUE CACHE BOOL "Found PCRE2 libraries" FORCE)
+   
+@@ -76,7 +106,10 @@
+     DOWNLOAD_DIR ${PCRE2_SRC_DIR}
+     SOURCE_DIR ${PCRE2_SRC_DIR}
+     CONFIGURE_COMMAND ${CMAKE_COMMAND} ${PCRE2_SRC_DIR} ${PCRE2_CONFIGURE_OPTIONS}
+-    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>
++    # Multi-config generators ignore CMAKE_BUILD_TYPE. Explicitly selecting
++    # Release prevents MSVC from producing only the debug *staticd.lib file.
++    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
++    INSTALL_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target install
+     INSTALL_DIR ${CMAKE_BINARY_DIR}
+     BUILD_BYPRODUCTS ${PCRE2_LIBRARIES})
+ 
+diff --git a/third_party/bergamot-translator/CMakeLists.txt b/third_party/bergamot-translator/CMakeLists.txt
+--- a/third_party/bergamot-translator/CMakeLists.txt
++++ b/third_party/bergamot-translator/CMakeLists.txt
+@@ -57,16 +57,19 @@
+ if(MSVC)
+   add_definitions(-DUSE_SSE2=1) # Supposed to fix something in the sse_mathfun.h but not sure it does
+   set(INTRINSICS ${MSVC_BUILD_ARCH}) # ARCH we're targetting on win32. @TODO variable
+-  
++
+   set(CMAKE_CXX_FLAGS           "/EHsc /DWIN32 /D_WINDOWS /DUNICODE /D_UNICODE /D_CRT_NONSTDC_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /bigobj")
+-  set(CMAKE_CXX_FLAGS_RELEASE   "${CMAKE_CXX_FLAGS} /MT /O2 ${INTRINSICS} /MP /GL /DNDEBUG")
++  # Bound compiler memory usage for Marian's template-heavy sources. Bare /MP
++  # can exhaust standard Windows CI runners, while /GL adds substantial memory
++  # pressure without being required by the wrapper.
++  set(CMAKE_CXX_FLAGS_RELEASE   "${CMAKE_CXX_FLAGS} /MT /O2 ${INTRINSICS} /MP1 /DNDEBUG")
+   set(CMAKE_CXX_FLAGS_DEBUG     "${CMAKE_CXX_FLAGS} /MTd /Od /Ob0 ${INTRINSICS} /RTC1 /Zi /D_DEBUG")
+ 
+   # ignores warning LNK4049: locally defined symbol free imported - this comes from zlib
+   set(CMAKE_EXE_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} /DEBUG /LTCG:incremental /INCREMENTAL:NO /ignore:4049")
+   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+   set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRTD")
+-  set(CMAKE_STATIC_LINKER_FLAGS      "${CMAKE_STATIC_LINKER_FLAGS} /LTCG:incremental")
++  set(CMAKE_STATIC_LINKER_FLAGS      "${CMAKE_STATIC_LINKER_FLAGS}")
+ endif(MSVC)
+ 
+ include(CMakeDependentOption)
+@@ -184,4 +187,3 @@
+ if(COMPILE_PYTHON)
+   add_subdirectory(bindings/python)
+ endif(COMPILE_PYTHON)
+-
+diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/CMakeLists.txt b/third_party/bergamot-translator/3rd_party/marian-dev/CMakeLists.txt
+--- a/third_party/bergamot-translator/3rd_party/marian-dev/CMakeLists.txt
++++ b/third_party/bergamot-translator/3rd_party/marian-dev/CMakeLists.txt
+@@ -151,6 +151,7 @@
+ 
+ if(USE_THREADS)
+   # Need to set compile definition as well
++  set(PTHREAD_FLAG "-pthread")
+   add_compile_definitions(USE_PTHREADS)
+ endif()
+ 
+@@ -226,7 +227,9 @@
+   # set(INTRINSICS "/arch:AVX512")
+ 
+   set(CMAKE_CXX_FLAGS                  "/EHsc /DWIN32 /D_WINDOWS /DUNICODE /D_UNICODE /D_CRT_NONSTDC_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS ${DISABLE_GLOBALLY}")
+-  set(CMAKE_CXX_FLAGS_RELEASE          "${CMAKE_CXX_FLAGS} /MT /O2 ${INTRINSICS} /MP /GL /DNDEBUG")
++  # Limit MSVC to one compiler process and avoid whole-program optimization.
++  # Both otherwise cause excessive memory use on Windows CI runners.
++  set(CMAKE_CXX_FLAGS_RELEASE          "${CMAKE_CXX_FLAGS} /MT /O2 ${INTRINSICS} /MP1 /DNDEBUG")
+   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO   "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+   set(CMAKE_CXX_FLAGS_DEBUG            "${CMAKE_CXX_FLAGS} /MTd /Od /Ob0 ${INTRINSICS} /RTC1 /Zi /D_DEBUG /bigobj")
+ 
+@@ -234,7 +237,7 @@
+   set(CMAKE_EXE_LINKER_FLAGS         "${CMAKE_EXE_LINKER_FLAGS} /DEBUG /LTCG:incremental /INCREMENTAL:NO /ignore:4049")
+   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+   set(CMAKE_EXE_LINKER_FLAGS_DEBUG   "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRTD")
+-  set(CMAKE_STATIC_LINKER_FLAGS      "${CMAKE_STATIC_LINKER_FLAGS} /LTCG:incremental")
++  set(CMAKE_STATIC_LINKER_FLAGS      "${CMAKE_STATIC_LINKER_FLAGS}")
+ 
+   find_library(SHLWAPI Shlwapi.lib)
+   set(EXT_LIBS ${EXT_LIBS} SHLWAPI)
+@@ -345,7 +348,6 @@
+ 
+   if(COMPILE_WASM)
+     if(USE_THREADS)
+-      set(PTHREAD_FLAG "-pthread")
+       set(DISABLE_PTHREAD_MEMGROWTH_WARNING -Wno-error=pthreads-mem-growth)
+     endif(USE_THREADS)
+     set(CMAKE_CXX_FLAGS                 "-std=c++11 ${PTHREAD_FLAG} ${CMAKE_GCC_FLAGS} -fPIC ${DISABLE_GLOBALLY} ${INTRINSICS}")
+@@ -364,7 +366,7 @@
+                                               --post-js ${CMAKE_SOURCE_DIR}/wasm/post-module.js \
+                                               --shell-file ${CMAKE_SOURCE_DIR}/wasm/custom_shell.html")
+   else(COMPILE_WASM)
+-    set(CMAKE_CXX_FLAGS                 "-std=c++11 -pthread ${CMAKE_GCC_FLAGS} -fPIC ${DISABLE_GLOBALLY} -march=${BUILD_ARCH} ${INTRINSICS} ${BUILD_WIDTH}")
++    set(CMAKE_CXX_FLAGS                 "-std=c++11 ${PTHREAD_FLAG} ${CMAKE_GCC_FLAGS} -fPIC ${DISABLE_GLOBALLY} -march=${BUILD_ARCH} ${INTRINSICS} ${BUILD_WIDTH}")
+     set(CMAKE_CXX_FLAGS_RELEASE         "-O3 ${BUILD_WIDTH} -funroll-loops")
+     set(CMAKE_CXX_FLAGS_DEBUG           "-O0 -g ${CMAKE_RDYNAMIC_FLAG}")
+     set(CMAKE_CXX_FLAGS_SLIM            "-O3 ${BUILD_WIDTH} -funroll-loops -DNDEBUG")
+@@ -374,7 +376,7 @@
+     set(CMAKE_CXX_FLAGS_PROFUSE         "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fprofile-use -fprofile-correction")
+ 
+     # these need to be set separately
+-    set(CMAKE_C_FLAGS                 "-pthread ${CMAKE_GCC_FLAGS} -fPIC ${DISABLE_GLOBALLY} -march=${BUILD_ARCH} ${INTRINSICS}")
++    set(CMAKE_C_FLAGS                 "${PTHREAD_FLAG} ${CMAKE_GCC_FLAGS} -fPIC ${DISABLE_GLOBALLY} -march=${BUILD_ARCH} ${INTRINSICS}")
+     set(CMAKE_C_FLAGS_RELEASE         "-O3 ${BUILD_WIDTH} -funroll-loops")
+     set(CMAKE_C_FLAGS_DEBUG           "-O0 -g ${CMAKE_RDYNAMIC_FLAG}")
+     set(CMAKE_C_FLAGS_SLIM            "-O3 ${BUILD_WIDTH} -funroll-loops -DNDEBUG")
+diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/ExceptionWithCallStack.cpp b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/ExceptionWithCallStack.cpp
+--- a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/ExceptionWithCallStack.cpp
++++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/ExceptionWithCallStack.cpp
+@@ -199,7 +199,7 @@
+ 
+ #else // Linux
+ 
+-    unsigned int MAX_NUM_FRAMES = 1024;
++    const unsigned int MAX_NUM_FRAMES = 1024;
+     void* backtraceAddresses[MAX_NUM_FRAMES];
+     unsigned int numFrames = backtrace(backtraceAddresses, MAX_NUM_FRAMES);
+     char** symbolList = backtrace_symbols(backtraceAddresses, numFrames);
+@@ -232,7 +232,7 @@
+ 
+             // Mangled name is now in [beginName, beginOffset) and caller offset in [beginOffset, beginAddress).
+             int status = 0;
+-            unsigned int MAX_FUNCNAME_SIZE = 4096;
++            const unsigned int MAX_FUNCNAME_SIZE = 4096;
+             size_t funcNameSize = MAX_FUNCNAME_SIZE;
+             char funcName[MAX_FUNCNAME_SIZE]; // working buffer
+             const char* ret = abi::__cxa_demangle(beginName, funcName, &funcNameSize, &status);
+diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/faiss/VectorTransform.h b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/faiss/VectorTransform.h
+--- a/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/faiss/VectorTransform.h
++++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/3rd_party/faiss/VectorTransform.h
+@@ -21,6 +21,12 @@
+ #if defined(__APPLE__) && !defined(__arm64__)
+ #include <x86intrin.h>
+ #endif
++#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
++#include <xmmintrin.h>
++#include <emmintrin.h>
++#include <pmmintrin.h>
++#endif
++
+ 
+ 
+ namespace faiss {
+diff --git a/third_party/bergamot-translator/3rd_party/marian-dev/src/tensors/cpu/prod_blas.h b/third_party/bergamot-translator/3rd_party/marian-dev/src/tensors/cpu/prod_blas.h
+--- a/third_party/bergamot-translator/3rd_party/marian-dev/src/tensors/cpu/prod_blas.h
++++ b/third_party/bergamot-translator/3rd_party/marian-dev/src/tensors/cpu/prod_blas.h
+@@ -6,11 +6,15 @@
+ #elif USE_ONNX_SGEMM
+     #include "3rd_party/onnxjs/src/wasm-ops/gemm.h"
+ #elif USE_RUY_SGEMM
++#if defined(__GNUC__) || defined(__clang__)
+ #pragma GCC diagnostic push
+ #pragma GCC diagnostic ignored "-Wcomment"
++#endif
+     #include "ruy/ruy.h"
+     #include "ruy/system_aligned_alloc.h"
+-#pragma GCC pop
++#if defined(__GNUC__) || defined(__clang__)
++#pragma GCC diagnostic pop
++#endif
+ #endif
+ 
+ #if USE_RUY_SGEMM
+diff --git a/third_party/bergamot-translator/3rd_party/ssplit-cpp/src/CMakeLists.txt b/third_party/bergamot-translator/3rd_party/ssplit-cpp/src/CMakeLists.txt
+--- a/third_party/bergamot-translator/3rd_party/ssplit-cpp/src/CMakeLists.txt
++++ b/third_party/bergamot-translator/3rd_party/ssplit-cpp/src/CMakeLists.txt
+@@ -1,6 +1,14 @@
+ include_directories(ssplit)
+ add_library(ssplit STATIC ssplit/ssplit.cpp ssplit/regex.cpp)
+ target_link_libraries(ssplit ${EXT_LIBS})
++
++# FindPCRE2 exposes the bundled archive as a path rather than an imported
++# CMake target, so PCRE2's interface definition cannot propagate naturally.
++# Static consumers need this definition to avoid importing __imp_pcre2_* DLL
++# symbols that do not exist in pcre2-8-static.lib.
++if(SSPLIT_USE_INTERNAL_PCRE2)
++  target_compile_definitions(ssplit PRIVATE PCRE2_STATIC)
++endif()
+ 
+ set_target_properties(ssplit PROPERTIES
+   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

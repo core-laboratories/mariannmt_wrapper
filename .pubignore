@@ -48,3 +48,12 @@ tool/*
 /build/
 example/**/pubspec.lock
 example/**/Podfile.lock
+
+# Dependency lock files are excluded from source control and publication.
+*.lock
+*.lockb
+*.lock.*
+*-lock.json
+*-lock.yaml
+*-lock.yml
+npm-shrinkwrap.json

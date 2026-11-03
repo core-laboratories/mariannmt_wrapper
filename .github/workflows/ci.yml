@@ -19,6 +19,7 @@ jobs:
         with:
           channel: stable
           cache: true
+      - run: python3 tool/test_update_native_sources.py
       - run: flutter pub get
       - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
