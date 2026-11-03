@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build every requested iOS architecture, then publish one universal archive."""
+"""Build each requested Apple architecture, then publish one universal archive."""
 import argparse
 import os
 from pathlib import Path
@@ -8,9 +8,9 @@ import subprocess
 
 def architectures(value, platform):
 	result = list(dict.fromkeys(value.split()))
-	if platform not in {'iphoneos', 'iphonesimulator'}:
-		raise ValueError(f'Unsupported iOS platform: {platform!r}')
-	allowed = {'arm64', 'x86_64'} if platform == 'iphonesimulator' else {'arm64'}
+	if platform not in {'iphoneos', 'iphonesimulator', 'macosx'}:
+		raise ValueError(f'Unsupported Apple platform: {platform!r}')
+	allowed = {'arm64', 'x86_64'} if platform in {'iphonesimulator', 'macosx'} else {'arm64'}
 	if not result or not set(result) <= allowed:
 		raise ValueError(f'Unsupported {platform} architectures: {value!r}')
 	return result
@@ -24,18 +24,19 @@ def build(source, root, environment):
 	configuration = environment['CONFIGURATION']
 	platform = environment['PLATFORM_NAME']
 	archs = architectures(environment['ARCHS'], platform)
+	macos = platform == 'macosx'
 	output = root / f'{configuration}-{platform}-{environment["ARCHS"]}'
 	output.mkdir(parents=True, exist_ok=True)
 	bundles = []
 	for arch in archs:
 		thin = root / 'thin' / f'{configuration}-{platform}-{arch}'
 		run('cmake', '-S', source / 'src', '-B', thin,
-			'-DIOS=ON',
+			f'-DIOS={"OFF" if macos else "ON"}',
 			f'-DCMAKE_BUILD_TYPE={"Debug" if configuration == "Debug" else "Release"}',
-			'-DCMAKE_SYSTEM_NAME=iOS', f'-DCMAKE_SYSTEM_PROCESSOR={arch}',
+			f'-DCMAKE_SYSTEM_NAME={"Darwin" if macos else "iOS"}', f'-DCMAKE_SYSTEM_PROCESSOR={arch}',
 			f'-DCMAKE_OSX_SYSROOT={environment["SDKROOT"]}',
 			f'-DCMAKE_OSX_ARCHITECTURES={arch}',
-			f'-DCMAKE_OSX_DEPLOYMENT_TARGET={environment["IPHONEOS_DEPLOYMENT_TARGET"]}')
+			f'-DCMAKE_OSX_DEPLOYMENT_TARGET={environment["MACOSX_DEPLOYMENT_TARGET" if macos else "IPHONEOS_DEPLOYMENT_TARGET"]}')
 		run('cmake', '--build', thin, '--target', 'mariannmt_wrapper', '-j',
 			environment.get('CMAKE_BUILD_PARALLEL_LEVEL', '8'))
 		# The C wrapper is compiled by CocoaPods' ObjC++ forwarder. Bundle its

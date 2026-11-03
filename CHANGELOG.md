@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.0.4
+
+- Fix universal macOS release builds by building ARM64 and x86_64 dependencies
+  separately and linking one combined archive.
 
 - Follow the latest official Bergamot upstream with a verified, pinned snapshot.
 - Preserve mobile and Windows portability fixes when refreshing native sources.

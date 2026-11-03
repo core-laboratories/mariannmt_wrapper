@@ -87,6 +87,8 @@ jobs:
             target: apk --debug --target-platform android-arm64
           - os: macos-latest
             target: ios --simulator --debug --no-codesign
+          - os: macos-latest
+            target: macos --release
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -150,7 +152,7 @@ jobs:
             cat > "$RUNNER_TEMP/body.md" <<'BODY'
           Update the pinned native snapshot to the latest official browsermt/bergamot-translator HEAD.
 
-          Validation passed before opening this PR: native builds and real-model translation tests on Linux, macOS and Windows; Android and iOS simulator example builds; Flutter analysis and Dart tests.
+          Validation passed before opening this PR: native builds and real-model translation tests on Linux, macOS and Windows; Android, iOS simulator and universal macOS example builds; Flutter analysis and Dart tests.
 
           The portability patch remains required. Revisions stay pinned for reproducible releases.
           BODY

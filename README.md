@@ -31,7 +31,7 @@ do not need Git submodules and plugin builds do not download source code.
 
 ```yaml
 dependencies:
-  mariannmt_wrapper: ^1.0.0
+  mariannmt_wrapper: ^1.0.4
 ```
 
 ## Usage
@@ -80,7 +80,8 @@ HEAD (exit 0: current; exit 2: update available).
 
 The **Latest Bergamot** workflow checks upstream daily and can also be run
 manually. New revisions must pass native builds and real-model inference on
-Linux, macOS and Windows, plus Android and iOS simulator example builds, before
+Linux, macOS and Windows, plus Android, iOS simulator and universal macOS
+example builds, before
 an update PR is opened. Enable GitHub Actions permission to create pull requests
 in the repository settings. Patch conflicts fail the workflow and require
 maintenance; updates are never silently accepted after a failed check.
@@ -111,8 +112,8 @@ flutter build windows --debug
 
 Only run platform build commands on their matching host operating system.
 
-On iOS, CocoaPods invokes `tool/build_ios.py` to build each requested `ARCHS`
-slice against the selected device or simulator SDK. The dependency archives are
+On iOS and macOS, CocoaPods invokes `tool/build_ios.py` to build each requested
+`ARCHS` slice against the selected device, simulator, or macOS SDK. The dependency archives are
 combined with Apple's `libtool` and `lipo`, including transitive libraries that
 vary by architecture. Native build regression checks can be run on macOS with:
 
@@ -120,8 +121,8 @@ vary by architecture. Native build regression checks can be run on macOS with:
 python3 tool/test_build_ios.py
 ```
 
-The regression fixture verifies both simulator architectures and a separate
-ARM64 device build without downloading translation models.
+The regression fixture verifies universal macOS and simulator archives, plus a
+separate ARM64 iOS device build, without downloading translation models.
 
 ## Model provenance
 
