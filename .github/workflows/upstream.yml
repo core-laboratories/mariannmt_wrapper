@@ -1,0 +1,160 @@
+name: Latest Bergamot
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: bergamot-upstream
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.sources.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: python3 tool/test_update_native_sources.py
+      - id: sources
+        name: Refresh official upstream snapshot when HEAD changes
+        shell: bash
+        run: |
+          set +e
+          ./tool/update_native_sources.sh --check
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          elif [ "$status" -eq 2 ]; then
+            ./tool/update_native_sources.sh --latest
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+            tar -czf "$RUNNER_TEMP/native-sources.tgz" tool/native_sources.conf third_party/bergamot-translator third_party/cld2
+          else
+            exit "$status"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: steps.sources.outputs.changed == 'true'
+        with:
+          name: upstream-sources
+          path: ${{ runner.temp }}/native-sources.tgz
+          retention-days: 7
+  native:
+    needs: prepare
+    if: needs.prepare.outputs.changed == 'true'
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            library: libmariannmt_wrapper.so
+            parallel: 2
+          - os: macos-latest
+            library: libmariannmt_wrapper.dylib
+            parallel: 2
+          - os: windows-latest
+            library: Release/mariannmt_wrapper.dll
+            parallel: 1
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: upstream-sources
+          path: ${{ runner.temp }}
+      - name: Install candidate sources
+        shell: bash
+        run: |
+          rm -rf third_party/bergamot-translator third_party/cld2
+          tar -xzf "$RUNNER_TEMP/native-sources.tgz"
+      - run: cmake -S src -B build/native -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build/native --config Release --target mariannmt_wrapper --parallel ${{ matrix.parallel }}
+      - run: python3 tool/download_test_models.py build/test-models
+      - run: python3 tool/test_native.py build/native/${{ matrix.library }} --model-directory build/test-models
+  flutter:
+    needs: prepare
+    if: needs.prepare.outputs.changed == 'true'
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: apk --debug --target-platform android-arm64
+          - os: macos-latest
+            target: ios --simulator --debug --no-codesign
+          - os: macos-latest
+            target: macos --release
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        if: runner.os == 'Linux'
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: upstream-sources
+          path: ${{ runner.temp }}
+      - name: Install candidate sources
+        shell: bash
+        run: |
+          rm -rf third_party/bergamot-translator third_party/cld2
+          tar -xzf "$RUNNER_TEMP/native-sources.tgz"
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: python3 tool/test_build_ios.py
+        if: runner.os == 'macOS'
+      - run: flutter build ${{ matrix.target }}
+        working-directory: example
+  update:
+    needs: [prepare, native, flutter]
+    if: needs.prepare.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: upstream-sources
+          path: ${{ runner.temp }}
+      - name: Open an update PR only after compatibility checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        shell: bash
+        run: |
+          branch=automation/bergamot-upstream
+          git checkout -B "$branch"
+          rm -rf third_party/bergamot-translator third_party/cld2
+          tar -xzf "$RUNNER_TEMP/native-sources.tgz"
+          git add tool/native_sources.conf third_party/bergamot-translator third_party/cld2
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update to latest official Bergamot'
+          git fetch origin "$branch:refs/remotes/origin/$branch" || true
+          if git rev-parse --verify "origin/$branch" >/dev/null 2>&1 && git diff --quiet "origin/$branch" HEAD -- tool/native_sources.conf third_party; then exit 0; fi
+          git push --force-with-lease origin "HEAD:$branch"
+          if ! gh pr view "$branch" --json url >/dev/null 2>&1; then
+            cat > "$RUNNER_TEMP/body.md" <<'BODY'
+          Update the pinned native snapshot to the latest official browsermt/bergamot-translator HEAD.
+
+          Validation passed before opening this PR: native builds and real-model translation tests on Linux, macOS and Windows; Android, iOS simulator and universal macOS example builds; Flutter analysis and Dart tests.
+
+          The portability patch remains required. Revisions stay pinned for reproducible releases.
+          BODY
+            gh pr create --base "$BASE_BRANCH" --head "$branch" --title 'Update to latest official Bergamot' --body-file "$RUNNER_TEMP/body.md"
+          fi

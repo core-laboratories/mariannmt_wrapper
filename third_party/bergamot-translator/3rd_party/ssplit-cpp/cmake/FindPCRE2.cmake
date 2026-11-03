@@ -75,15 +75,15 @@ if(SSPLIT_USE_INTERNAL_PCRE2)
     )
   endif(ANDROID)
 
-  # iOS platform needs to be explicitly passed given this is an external project.
-  if(IOS)
+  # Apple SDK and CPU slice must be passed to the external PCRE2 build.
+  if(APPLE)
     LIST(APPEND PCRE2_CONFIGURE_OPTIONS
-      -DCMAKE_SYSTEM_NAME=iOS
+      -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
       -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
       -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
       -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
     )
-  endif(IOS)
+  endif(APPLE)
 
   # MSVC gives static PCRE2 libraries an explicit "-static" suffix. Keep the
   # declared byproduct in sync with the file installed by PCRE2 so downstream

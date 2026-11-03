@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'mariannmt_wrapper'
-  s.version          = '1.0.3'
+  s.version          = '1.0.4'
   s.summary          = 'Offline Marian neural machine translation for Flutter.'
   s.description      = <<-DESC
 Cross-platform Flutter FFI bindings for private, on-device Marian translation.

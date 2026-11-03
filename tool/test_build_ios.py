@@ -1,4 +1,4 @@
-"""Regression checks for CocoaPods' multi-architecture native build."""
+"""Regression checks for CocoaPods' multi-architecture Apple builds."""
 import importlib.util
 import os
 from pathlib import Path
@@ -17,14 +17,15 @@ class ArchitectureTests(unittest.TestCase):
 	def test_supported_architectures_preserve_order_and_remove_duplicates(self):
 		self.assertEqual(builder.architectures('arm64 x86_64 arm64', 'iphonesimulator'), ['arm64', 'x86_64'])
 		self.assertEqual(builder.architectures('arm64', 'iphoneos'), ['arm64'])
+		self.assertEqual(builder.architectures('arm64 x86_64 arm64', 'macosx'), ['arm64', 'x86_64'])
 
 	def test_invalid_architectures_fail_before_building(self):
-		for archs, platform in [('', 'iphonesimulator'), ('armv7', 'iphoneos'), ('x86_64', 'iphoneos')]:
+		for archs, platform in [('', 'iphonesimulator'), ('armv7', 'iphoneos'), ('x86_64', 'iphoneos'), ('armv7', 'macosx')]:
 			with self.assertRaises(ValueError):
 				builder.architectures(archs, platform)
 
 	@unittest.skipUnless(sys.platform == 'darwin' and shutil.which('cmake'), 'Requires Xcode and CMake')
-	def test_real_universal_simulator_archive_and_separate_device_archive(self):
+	def test_real_universal_apple_archives_and_separate_device_archive(self):
 		with tempfile.TemporaryDirectory(prefix='marian-ios-test-') as temporary:
 			root = Path(temporary)
 			source = root / 'source with spaces'
@@ -37,10 +38,10 @@ target_link_libraries(mariannmt_wrapper PRIVATE engine)
 ''')
 			(source / 'src' / 'engine.cpp').write_text('extern "C" int translation_engine() { return 42; }')
 			(source / 'src' / 'wrapper.cpp').write_text('extern "C" int translation_engine();\nextern "C" int wrapper() { return translation_engine(); }')
-			for platform, archs in [('iphonesimulator', 'arm64 x86_64'), ('iphoneos', 'arm64')]:
+			for platform, archs in [('iphonesimulator', 'arm64 x86_64'), ('iphoneos', 'arm64'), ('macosx', 'arm64 x86_64')]:
 				environment = dict(os.environ, CONFIGURATION='Debug', PLATFORM_NAME=platform, ARCHS=archs,
 					SDKROOT=subprocess.check_output(['xcrun', '--sdk', platform, '--show-sdk-path'], text=True).strip(),
-					IPHONEOS_DEPLOYMENT_TARGET='15.6')
+					IPHONEOS_DEPLOYMENT_TARGET='15.6', MACOSX_DEPLOYMENT_TARGET='12.0')
 				builder.build(source, root / 'build with spaces', environment)
 				archive = root / 'build with spaces' / f'Debug-{platform}-{archs}' / 'libmariannmt_dependencies.a'
 				for arch in archs.split():

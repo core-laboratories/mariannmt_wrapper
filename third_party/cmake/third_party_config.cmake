@@ -149,6 +149,23 @@ if(IOS)
     message(STATUS "Providing iOS pthread hints for FindThreads")
 endif()
 
+# A universal macOS build compiles each architecture in a separate CMake tree.
+# Never select the build host CPU when producing the other architecture's slice.
+if(APPLE AND NOT IOS)
+    set(AUTO_CPU_DETECT OFF CACHE BOOL "Disable host CPU detection for Apple slices" FORCE)
+    set(USE_WASM_COMPATIBLE_SOURCES OFF CACHE BOOL "Build native Apple sources" FORCE)
+    if(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+        set(BUILD_ARCH "x86-64" CACHE STRING "macOS target architecture" FORCE)
+        set(CMAKE_TARGET_ARCHITECTURE_CODE "x86_64" CACHE STRING "Target architecture" FORCE)
+        set(USE_SIMD_UTILS OFF CACHE BOOL "Use native x86 intrinsics" FORCE)
+        set(USE_INTGEMM ON CACHE BOOL "Use x86 INTGEMM backend" FORCE)
+    elseif(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+        set(BUILD_ARCH "armv8-a" CACHE STRING "macOS target architecture" FORCE)
+    else()
+        message(FATAL_ERROR "Build macOS slices separately: ${CMAKE_OSX_ARCHITECTURES}")
+    endif()
+endif()
+
 # Detect macOS ARM64 platform (Apple Silicon)
 if(APPLE AND NOT IOS AND CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
     message(STATUS "Configuring for macOS ARM64 platform (Apple Silicon)")
